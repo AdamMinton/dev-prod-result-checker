@@ -88,8 +88,8 @@ def generate_results(dashboard_id,dashboard_config_filters):
                                 # Loop through the tiles and generate results
                                 elements = sdk.dashboard_dashboard_elements(dashboard_id)
                                 for element in elements:
-                                         if element.query == None:
-                                                # Skip text tiles
+                                         if element.query == None or element.merge_result_id != None:
+                                                # Skip text tiles and merged results
                                                 # print(element.query)
                                                 continue
                                          else:
