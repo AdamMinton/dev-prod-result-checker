@@ -17,6 +17,7 @@ import json
 from pyparsing import nestedExpr
 import logging
 import prettyprinter
+from collections import OrderedDict
 prettyprinter.install_extras(include=['attrs'])
 
 # Set up logger
@@ -159,12 +160,21 @@ def generate_results(dashboard_id,dashboard_config_filters):
                                                 )
                                                 # Run the tile and output it to either the dev or prod dictionary 
                                                 if dev_or_production == "dev":
-                                                        results_dev[dashboard_id + "||||" + title] = json.dumps(sdk.run_inline_query(result_format="json",body=prep_query))
+                                                        results_dev[dashboard_id + "||||" + title] = json.loads(sdk.run_inline_query(result_format="json",body=prep_query),object_pairs_hook=OrderedDict)
                                                 else:
-                                                        results_prod[dashboard_id + "||||" + title] = json.dumps(sdk.run_inline_query(result_format="json",body=prep_query))
+                                                        results_prod[dashboard_id + "||||" + title] = json.loads(sdk.run_inline_query(result_format="json",body=prep_query),object_pairs_hook=OrderedDict)
                         # Run the compare results function. Then clean up dictionaries used for comparisons
                         compare_results()
+                        # f = open("myOutFileDev.txt","w")
+                        # f.write( str(results_dev) )
+                        # f.close()
+                        # f = open("myOutFileProd.txt","w")
+                        # f.write( str(results_prod) )
+                        # f.close()
                         # print('this is dev')
+                        # outF = open("myOutFileDev.txt", "w")
+                        # outF.writelines(results_dev)
+                        # outF.close()
                         # print(results_dev)
                         # print('this is prod')
                         # print(results_prod)
@@ -189,7 +199,6 @@ def main():
                                         name =row[i]
                                         value =row[i+1]
                                         dashboard_config_filters[name] = value
-                        # print('these are the user fed filters')
                         generate_results(dashboard_id,dashboard_config_filters)           
 
 if __name__ == "__main__":
