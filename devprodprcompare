@@ -80,6 +80,7 @@ def generate_results(dashboard_id,dashboard_config_filters):
                                 for dic in default_dashboard_filter_values:
                                         if dic['dashboard_filter_name'] == key:
                                                 dic['filter_default_value'] = dashboard_config_filters[key]
+                                                print('break')
                         # Loop through Dev and Prod mode
                         for environment in environments:
                                 dev_or_production = environment
@@ -87,10 +88,12 @@ def generate_results(dashboard_id,dashboard_config_filters):
                                 # Loop through the tiles and generate results
                                 elements = sdk.dashboard_dashboard_elements(dashboard_id)
                                 for element in elements:
-                                         print(element)
+                                         print('this is the query_object')
+                                         print(element.query)
                                          if element.query == None:
                                                 # Skip text tiles
-                                                pass
+                                                print(element.query)
+                                                continue
                                          else:
                                 #  Pull all the parts of the tile's query: 
                                                 title = element.title
@@ -98,8 +101,6 @@ def generate_results(dashboard_id,dashboard_config_filters):
                                                 tile_view = element.query.view
                                                 tile_fields = element.query.fields
                                                 tile_pivots = element.query.pivots
-                                                #  These are the filters that were created when the tile was created
-                                                tile_level_filters = element.query.filters
                                                 tile_sorts = element.query.sorts
                                                 tile_query_timezone = element.query.query_timezone
                                                 tile_limit = element.query.limit
@@ -107,6 +108,11 @@ def generate_results(dashboard_id,dashboard_config_filters):
                                                 tile_row_total = element.query.row_total
                                                 tile_fill_fields = element.query.fill_fields
                                                 tile_dynamic_fields= element.query.dynamic_fields
+                                                #  These are the filters that were created when the tile was created
+                                                tile_level_filters = element.query.filters
+                                                #  If no filters are applied, set to blank dictionary
+                                                if tile_level_filters == None:
+                                                        tile_level_filters = {} # type: dict
                                                 # These are the filters that are applied via the dashboard and listening. 
                                                 # Since dashboard level filters do not have to be applied to every tile, this needs to be checked per tile
                                                 dashboard_level_filters_for_tile = element.result_maker.filterables[0]
