@@ -80,7 +80,6 @@ def generate_results(dashboard_id,dashboard_config_filters):
                                 for dic in default_dashboard_filter_values:
                                         if dic['dashboard_filter_name'] == key:
                                                 dic['filter_default_value'] = dashboard_config_filters[key]
-                                                print('break')
                         # Loop through Dev and Prod mode
                         for environment in environments:
                                 dev_or_production = environment
@@ -88,11 +87,9 @@ def generate_results(dashboard_id,dashboard_config_filters):
                                 # Loop through the tiles and generate results
                                 elements = sdk.dashboard_dashboard_elements(dashboard_id)
                                 for element in elements:
-                                         print('this is the query_object')
-                                         print(element.query)
                                          if element.query == None:
                                                 # Skip text tiles
-                                                print(element.query)
+                                                # print(element.query)
                                                 continue
                                          else:
                                 #  Pull all the parts of the tile's query: 
@@ -167,6 +164,10 @@ def generate_results(dashboard_id,dashboard_config_filters):
                                                         results_prod[dashboard_id + "||||" + title] = json.dumps(sdk.run_inline_query(result_format="json",body=prep_query))
                         # Run the compare results function. Then clean up dictionaries used for comparisons
                         compare_results()
+                        # print('this is dev')
+                        # print(results_dev)
+                        # print('this is prod')
+                        # print(results_prod)
                         results_dev.clear()
                         results_prod.clear()
 
@@ -189,7 +190,6 @@ def main():
                                         value =row[i+1]
                                         dashboard_config_filters[name] = value
                         # print('these are the user fed filters')
-                        # print(dashboard_config_filters)
                         generate_results(dashboard_id,dashboard_config_filters)           
 
 if __name__ == "__main__":
