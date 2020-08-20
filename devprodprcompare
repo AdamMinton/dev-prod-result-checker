@@ -135,14 +135,7 @@ def generate_results(dashboard_id,dashboard_config_filters):
                                                         tile_defaults_for_comp[field]=value
                                                 
                                                 # Use Dictionary unpacking to merge. Filters set in the dashboard_tests_config.csv file take precedence, then default filters, then finally the tile filters
-                                                all_applicable_filters = {**tile_level_filters,**tile_defaults_for_comp}    
-                                                # Used for debugging script createion. To be deleted                
-                                                # print('this is the default override dic')
-                                                # print(tile_defaults_for_comp)
-                                                # print('these are from the tile itself')
-                                                # print(tile_level_filters)
-                                                # print('final filters')
-                                                # print(all_applicable_filters)                                              
+                                                all_applicable_filters = {**tile_level_filters,**tile_defaults_for_comp}                                              
                                                 # # Create the final Write Query Model                                       
                                                 prep_query = models.WriteQuery(
                                                         model=tile_model,
@@ -165,19 +158,6 @@ def generate_results(dashboard_id,dashboard_config_filters):
                                                         results_prod[dashboard_id + "||||" + title] = json.loads(sdk.run_inline_query(result_format="json",body=prep_query),object_pairs_hook=OrderedDict)
                         # Run the compare results function. Then clean up dictionaries used for comparisons
                         compare_results()
-                        # f = open("myOutFileDev.txt","w")
-                        # f.write( str(results_dev) )
-                        # f.close()
-                        # f = open("myOutFileProd.txt","w")
-                        # f.write( str(results_prod) )
-                        # f.close()
-                        # print('this is dev')
-                        # outF = open("myOutFileDev.txt", "w")
-                        # outF.writelines(results_dev)
-                        # outF.close()
-                        # print(results_dev)
-                        # print('this is prod')
-                        # print(results_prod)
                         results_dev.clear()
                         results_prod.clear()
 
