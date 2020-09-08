@@ -4,7 +4,7 @@
 
 # Script Overview:::
 # This test scripts takes user input in the form of the dashboards_test_config file
-# Users specify a dashboard name, id, and a list of fitlers with each distinct filter having one column for the name and one for the desired value
+# Users specify a dashboard name, id, and a list of filters with each distinct filter having one column for the name and one for the desired value
 # Filter logic pulls default filters, listening filters and tile filters. User input filter override defaults, which are applied on a per tile basis along wiht the tile's filters
 # Every tile is looped through and the results are stored in dictionaries. The dev and prod dictionaries are checked against each other
 # If no differences are found, the entire dashboard outputs as successful. 
@@ -42,13 +42,6 @@ sdk = looker_sdk.init31()  # or init40() for v4.0 API
 def switch_session(dev_or_production):
         sdk.session()
         sdk.update_session(body = models.WriteApiSession(workspace_id = dev_or_production))
-
-# def checkout_dev_branch(branch_name, project_name):
-#     """Enter dev workspace and pull remote"""
-#     branch = models.WriteGitBranch(name=branch_name)
-#     sdk.update_git_branch(project_id=project_name, body=branch)
-#     # Pull remote branch
-#     sdk.reset_project_to_remote(project_id=project_name)
 
 def compare_results():
         discrepancy_counter=0
