@@ -13,11 +13,23 @@ This script runs the **queries** for every Look-based or query-based tile on the
 1. Configure an API service account to run the script
 2. Generate API keys for the service account. 
 3. Store your API keys in a secure location. This script is currently configured to pull from a .ini file to allow for quick testing. This is not secure in a production environment. The actual API keys should be stored in environment variables or an alterative secure location. 
-4. Configure your automated tests in the dashboard_tests_config.csv file. Each line is a new test. Specify the dashboard name and ID. From there, add Filter Name and Filter Value Pairs. Unlimited pairs can be added as the script just loops through pairs of Columns. The name of the Filter must match the name as displayed on the dashboard. 
+4. Configure your automated tests in the dashboard_tests_config.csv file. Each line is a new test. Specify the dashboard name and ID. From there, add Filter Name and Filter Value Pairs. Unlimited pairs can be added as the script just loops through pairs of Columns. The name of the Filter must match the name as displayed on the dashboard. Dashboards can be specified more than once and with different filter values. 
 5. Run the script 
 
 # Interpreting Output
+The script will either:
 
+1. Show that the dashboard test ran successfully in which case no action is required (unless a change was anticipated) 
+
+Example: 
+*2020-09-08,15:47:51.554 dashboard_tests: INFO     Dashboard 493 Matches*
+
+2. Show that one or more tiles have discrepancies:
+
+Example: 
+*2020-09-08,15:44:55.150 dashboard_tests: WARNING  Discrepancies found in results. Dashboard 493's Tile with Title 'check' Does Not Match. Proceed with caution and fix any errors prior to committing*
+
+In the case of discrepancies, it is up to the Developer to remediate. This discrepancy will either be correct and due to a planned LookML change or need to be troubleshooted and corrected due to an accidental breaking LookML change. 
 
 # Specifying exact development branches
 
