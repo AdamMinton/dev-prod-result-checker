@@ -16,6 +16,8 @@ This script runs the **queries** for every Look-based or query-based tile on the
 4. Configure your automated tests in the dashboard_tests_config.csv file. Each line is a new test. Specify the dashboard name and ID. From there, add Filter Name and Filter Value Pairs. Unlimited pairs can be added as the script just loops through pairs of Columns. The name of the Filter must match the name as displayed on the dashboard. Dashboards can be specified more than once and with different filter values. 
 5. Run the script 
 
+It is recommended that Pull Requests be Required for the Looker Project. 
+
 # Interpreting Output
 The script will either:
 
@@ -32,6 +34,10 @@ The script will either:
 In the case of discrepancies, it is up to the Developer to remediate. This discrepancy will either be correct and due to a planned LookML change or need to be troubleshooted and corrected due to an accidental breaking LookML change. 
 
 # Specifying exact development branches
+The above setup steps configure this script to be run for the API user only. In reality, this script will likely be incorporated into a CI/CD tool. Developers will be committing changes to Production from a variety of development branches: either their personal branches or Shared branches. 
+
+As currently constituted, you would have to login in as the API user and then manually change their branch within the Looker UI. This can be done automatically with the following API endpoints: 
+
 
 
 # Known Caveats/Issues
