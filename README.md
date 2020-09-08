@@ -1,7 +1,7 @@
 # Dev/Prod Result Checker
 
 The purpose of this script is to compare results in Dev mode and Production. This is an important step to ensuring Development Changes do not make any unwanted changes to existing Production results. 
-This script is intended to augment manual unit test and QA testing. By automating some of the testing, Developers and QA testers can perform less manual checks. 
+This script is intended to augment manual unit test and QA testing. By automating some of the testing, Developers and QA testers can perform less manual checks. Testing automation is highly recommended in Embedded scenarios, however is also broadly applicabel to any Looker scenario. 
 
 *Please note: Manual checks should be part of all QA testing methodologies. With the addition of these automated tests, your QA testers can focus more of their time on verification of things like drills, links, visualizations etc.* 
 
