@@ -11,7 +11,9 @@ This script runs the **queries** for every Look-based or query-based tile on the
 # Setup
 
 1. Configure an API service account to run the script
-2. 
+2. Generate API keys for the service account. 
+3. Store your API keys in a secure location. This script is currently configured to pull from a .ini file to allow for quick testing. This is not secure in a production environment. The actual API keys should be stored in environment variables or an alterative secure location. 
+
 
 # Known Caveats/Issues
 
