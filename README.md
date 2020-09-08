@@ -38,6 +38,11 @@ The above setup steps configure this script to be run for the API user only. In 
 
 As currently constituted, you would have to login in as the API user and then manually change their branch within the Looker UI. This can be done automatically with the following API endpoints: 
 
+Switch branches:
+https://docs.looker.com/reference/api-and-integration/api-reference/v3.0/project#update_project_git_branch
+
+Ensure the branch is synced with the Git Repo:
+https://docs.looker.com/reference/api-and-integration/api-reference/v3.1/project#reset_to_remote
 
 
 # Known Caveats/Issues
