@@ -1,4 +1,4 @@
-# dev-prod-result-checker
+# Dev/Prod Result Checker
 
 The purpose of this script is to compare results in Dev mode and Production. This is an important step to ensuring Development Changes do not make any unwanted changes to existing Production results. 
 This script is intended to augment manual unit test and QA testing. By automating some of the testing, Developers and QA testers can perform less manual checks. 
@@ -7,4 +7,11 @@ This script is intended to augment manual unit test and QA testing. By automatin
 
 This script runs the **queries** for every tile on the dashboard. Subsequently, the script compares the **query results** from Dev to Production mode and flags any differences. For this reason, this script ensures Data consistency only and does not test UI components. 
 
+# Setup
+
+1. Configure an API service account to run the script
+2. 
+
+# Support 
+The Dev/Prod Result Checker is NOT an official supported product of Looker. Support for The Dev/Prod Result Checker is not included and there are no guarantees that it will work for you. The Dev/Prod Result Checker was built by Greg Li, a consultant in Looker's Professional Services organization. This is **not an open source product and should not be distributed without the prior written consent of the Looker Professional Services organization**. 
 
