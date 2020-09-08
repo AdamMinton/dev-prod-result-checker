@@ -21,13 +21,13 @@ The script will either:
 
 1. Show that the dashboard test ran successfully in which case no action is required (unless a change was anticipated) 
 
-Example: 
-*2020-09-08,15:47:51.554 dashboard_tests: INFO     Dashboard 493 Matches*
+   Example: 
+    *2020-09-08,15:47:51.554 dashboard_tests: INFO     Dashboard 493 Matches*
 
 2. Show that one or more tiles have discrepancies:
 
-Example: 
-*2020-09-08,15:44:55.150 dashboard_tests: WARNING  Discrepancies found in results. Dashboard 493's Tile with Title 'check' Does Not Match. Proceed with caution and fix any errors prior to committing*
+   Example: 
+    *2020-09-08,15:44:55.150 dashboard_tests: WARNING  Discrepancies found in results. Dashboard 493's Tile with Title 'check' Does Not Match. Proceed with           caution and fix any errors prior to committing*
 
 In the case of discrepancies, it is up to the Developer to remediate. This discrepancy will either be correct and due to a planned LookML change or need to be troubleshooted and corrected due to an accidental breaking LookML change. 
 
