@@ -13,7 +13,10 @@ This script runs the **queries** for every Look-based or query-based tile on the
 1. Configure an API service account to run the script
 2. Generate API keys for the service account. 
 3. Store your API keys in a secure location. This script is currently configured to pull from a .ini file to allow for quick testing. This is not secure in a production environment. The actual API keys should be stored in environment variables or an alterative secure location. 
-4. Configure your automated tests in the dashboard_tests_config.csv file. Each line is a new test. 
+4. Configure your automated tests in the dashboard_tests_config.csv file. Each line is a new test. Specify the dashboard name and ID. From there, add Filter Name and Filter Value Pairs. Unlimited pairs can be added as the script just loops through pairs of Columns. The name of the Filter must match the name as displayed on the dashboard. 
+5. Run the script 
+
+# Interpreting Output
 
 
 # Specifying exact development branches
@@ -21,7 +24,7 @@ This script runs the **queries** for every Look-based or query-based tile on the
 
 # Known Caveats/Issues
 
-**The below caveats/issues are important to understand as they impact what is tested **
+**The below caveats/issues are important to understand as they impact what is tested**
 1. Text tiles are skipped (there should be no difference between Dev/Prod) 
 2. Merged queries are skipped and are NOT compared. Merged queries are done post processing and actually generate two or more query results. The Dev/Prod Result Checker does not currently support this 
 3. For large data tables, if sort orders are not specified in the visualization, Discrepancies will be thrown due to how SQL randomly sorts ties for rows that have the same measure values. All large data tables should have sorts specified. If necessary, secondardy sorts should also be specified by holding down the shift key on your keyboard within Looker and clicking on the secondary dimension. To check your exact specified sort orders, you can verify with the Order By clause in the SQL tab of the explore. 
