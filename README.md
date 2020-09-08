@@ -54,5 +54,5 @@ https://docs.looker.com/reference/api-and-integration/api-reference/v3.1/project
 4. Script takes Dashboard IDs as input. Slugs have not been tested
 
 # Support 
-The Dev/Prod Result Checker is NOT an official supported product of Looker. Support for The Dev/Prod Result Checker is not included and there are no guarantees that it will work for you. The Dev/Prod Result Checker was built by Greg Li, a consultant in Looker's Professional Services organization. This is **not an open source product and should not be shared or distributed without the prior written consent of the Looker Professional Services organization**. 
+The Dev/Prod Result Checker is NOT an officially supported product of Looker. Support for The Dev/Prod Result Checker is not included and there are no guarantees that it will work for you. The Dev/Prod Result Checker was built by Greg Li, a consultant in Looker's Professional Services organization. This is **not an open source product and should not be shared or distributed without the prior written consent of the Looker Professional Services organization**. 
 
