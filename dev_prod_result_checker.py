@@ -49,9 +49,11 @@ def compare_results():
                 if results_dev[key] != results_prod[key]:
                         dash_logs.warning("Discrepancies found in results. Dashboard " +  key.split('||||')[0] + "'s Tile with Title '" + key.split('||||')[1] + "' Does Not Match. Proceed with caution and fix any errors prior to committing")
                         discrepancy_counter += 1
-        if discrepancy_counter == 0:
-                  dash_logs.info("Dashboard " +  key.split('||||')[0] + " Matches")
-
+                if discrepancy_counter == 0:
+                        dash_logs.info("Dashboard " +  key.split('||||')[0] + " Matches")
+        assert discrepancy_counter == 0, """
+                Discrepencies discovered. Please review logs, and correct affected dashboard(s).
+                """
 
 def get_default_dashboard_filter_values(dashboard_id):
         dashboard_filter_details = sdk.dashboard_dashboard_filters(dashboard_id)
