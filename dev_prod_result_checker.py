@@ -55,6 +55,10 @@ def checkout_dev_branch(branch_name, lookml_project):
         branch = models.WriteGitBranch(name=branch_name)
         sdk.update_git_branch(project_id=lookml_project, body=branch)
 
+# Pull from the remote repo. Any non-committed changes will NOT be considered during the dashboard checks
+def sync_dev_branch_to_remote(lookml_project):
+        sdk.reset_project_to_remote(project_id=lookml_project)
+
 def compare_results():
         discrepancy_counter=0
         for key in results_dev:
@@ -94,6 +98,7 @@ def generate_results(dashboard_id, dashboard_config_filters):
                 switch_session(environment)
                 if environment == 'dev' and branch_name:
                         checkout_dev_branch(branch_name, lookml_project)
+                        sync_dev_branch_to_remote(lookml_project)
 
                 # Loop through the tiles and generate results
                 elements = sdk.dashboard_dashboard_elements(dashboard_id)
