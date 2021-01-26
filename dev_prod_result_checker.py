@@ -43,8 +43,12 @@ sdk = looker_sdk.init31()  # or init40() for v4.0 API
 # Setup argparser
 parser = argparse.ArgumentParser()
 parser.add_argument('--branch', '-b', type=str, required=False, help='A developer branch to checkout.')
+parser.add_argument('--output_tile_results', '-ot', action="store_true", required=False, help='View all tile results for Dev and Prod.')
+parser.add_argument('--output_differences', '-od', action="store_true", required=False, help='View tile results in both Dev and Prod for tiles that have differences.')
 args = parser.parse_args()
 branch_name = args.branch
+output_results= args.output_tile_results
+output_differences= args.output_differences
 
 # Function to switch branches
 def switch_session(dev_or_production):
@@ -61,15 +65,29 @@ def sync_dev_branch_to_remote(lookml_project):
 
 def compare_results():
         discrepancy_counter=0
+        key_counter = 0
         for key in results_dev:
+                key_counter += 1
                 if results_dev[key] != results_prod[key]:
+                        if output_differences is True or output_results is True:
+                                dash_logs.info("Dashboard " +  key.split('||||')[0] + "'s Tile with Title '" + key.split('||||')[1] + "' DOES NOT MATCH Results are as follows:")
+                                dash_logs.info(results_dev[key])
+                                dash_logs.info(results_prod[key])
                         dash_logs.warning("Discrepancies found in results. Dashboard " +  key.split('||||')[0] + "'s Tile with Title '" + key.split('||||')[1] + "' Does Not Match. Proceed with caution and fix any errors prior to committing")
                         discrepancy_counter += 1
-                if discrepancy_counter == 0:
-                        dash_logs.info("Dashboard " +  key.split('||||')[0] + " Matches")
-        assert discrepancy_counter == 0, """
-                Discrepencies discovered. Please review logs, and correct affected dashboard(s).
-                """
+                else:
+                        if output_results is True:
+                                dash_logs.info("Dashboard " +  key.split('||||')[0] + "'s Tile with Title '" + key.split('||||')[1] + "' MATCHES Results are as follows:")
+                                dash_logs.info(results_dev[key])
+                                dash_logs.info(results_prod[key])
+
+        if discrepancy_counter == 0:
+                dash_logs.info("SUMMARY: Dashboard " +  key.split('||||')[0] + " was run for " + str(key_counter) + " tiles and Matches")
+        else:
+                dash_logs.info("Dashboard " +  key.split('||||')[0] + " was run for " + str(key_counter) + " tiles and " + str(discrepancy_counter) + " discrepancies found" ) 
+        # assert discrepancy_counter == 0, """
+        #         Discrepencies discovered. Please review logs, and correct affected dashboard(s).
+        #         """
 
 def get_default_dashboard_filter_values(dashboard_id):
         dashboard_filter_details = sdk.dashboard_dashboard_filters(dashboard_id)
@@ -115,6 +133,7 @@ def generate_results(dashboard_id, dashboard_config_filters):
                                         element_query = element.query
                                         title = element.title
                         #  Pull all the parts of the tile's query: 
+                        tile_filter_expression = element_query.filter_expression
                         tile_model = element_query.model
                         tile_view = element_query.view
                         tile_fields = element_query.fields
@@ -169,13 +188,21 @@ def generate_results(dashboard_id, dashboard_config_filters):
                                 row_total=tile_row_total,
                                 fill_fields=tile_fill_fields,
                                 dynamic_fields=tile_dynamic_fields,
-                                filters=all_applicable_filters
+                                filters = all_applicable_filters
                 )
                 # Run the tile and output it to either the dev or prod dictionary 
-                if dev_or_production == "dev":
-                        results_dev[dashboard_id + "||||" + title] = json.loads(sdk.run_inline_query(result_format="json",body=prep_query),object_pairs_hook=OrderedDict)
-                else:
-                        results_prod[dashboard_id + "||||" + title] = json.loads(sdk.run_inline_query(result_format="json",body=prep_query),object_pairs_hook=OrderedDict)
+                        if dev_or_production == "dev":
+                                try:
+                                        results_dev[dashboard_id + "||||" + title] = json.loads(sdk.run_inline_query(result_format="json",body=prep_query),object_pairs_hook=OrderedDict)
+                                except:
+                                        json_query_error= """{"query status" : "query error - check for missing fields, joins, views, explores"}"""
+                                        results_dev[dashboard_id + "||||" + title] = json.loads(json_query_error)
+                        else:
+                                try:
+                                        results_prod[dashboard_id + "||||" + title] = json.loads(sdk.run_inline_query(result_format="json",body=prep_query),object_pairs_hook=OrderedDict)
+                                except:
+                                        json_query_error= """{"query status" : "query error - check for missing fields, joins, views, explores"}"""
+                                        results_prod[dashboard_id + "||||" + title] = json.loads(json_query_error)
         # Run the compare results function. Then clean up dictionaries used for comparisons
         compare_results()
         results_dev.clear()
