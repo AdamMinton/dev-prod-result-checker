@@ -10,223 +10,323 @@
 # If no differences are found, the entire dashboard outputs as successful. 
 # Discrepancies are flagged on a per tile basis for user remediation 
 
-import looker_sdk
-import argparse 
+# import argparse 
+# import compare
 import csv
-from looker_sdk import models
 import json
-from pyparsing import nestedExpr
 import logging
+import looker_sdk
+import os
+import pandas as pd
+import pathlib
 import prettyprinter
 from collections import OrderedDict
+from datetime import datetime
+from looker_sdk import models
+from pyparsing import nestedExpr
+
 prettyprinter.install_extras(include=['attrs'])
 
 # Set up logger
 logging.getLogger().setLevel(logging.DEBUG)
-dash_logs = logging.getLogger('dashboard_tests:')
+dash_logs = logging.getLogger('content_tests:')
 dash_log_handler = logging.StreamHandler()
 dash_log_handler.setLevel(logging.INFO)
 formatter = logging.Formatter(
         fmt='%(asctime)s.%(msecs)03d %(name)-12s %(levelname)-8s %(message)s',datefmt='%Y-%m-%d,%H:%M:%S')
 dash_log_handler.setFormatter(formatter)        
-# Add handlers to the logger
 dash_logs.addHandler(dash_log_handler)
 
 # Define variables for use in functions
-results_dev = {} # type: dict
-results_prod = {} # type: dict
+results_a = pd.DataFrame() #{} # type: dict
+results_b = pd.DataFrame() #{} # type: dict
 environments = ['dev','production']
-lookml_project = 'bigquery' # type: string
-dashboard_tile_titles = [] # type: list
-sdk = looker_sdk.init31()  # or init40() for v4.0 API
+test_components = ['a','b']
+compare_result = pd.DataFrame(columns=["Test Name","Sorted Result","Unsorted Result"])
 
-# Setup argparser
-parser = argparse.ArgumentParser()
-parser.add_argument('--branch', '-b', type=str, required=False, help='A developer branch to checkout.')
-parser.add_argument('--output_tile_results', '-ot', action="store_true", required=False, help='View all tile results for Dev and Prod.')
-parser.add_argument('--output_differences', '-od', action="store_true", required=False, help='View tile results in both Dev and Prod for tiles that have differences.')
-args = parser.parse_args()
-branch_name = args.branch
-output_results= args.output_tile_results
-output_differences= args.output_differences
+#Create directory for storing testing results
+target_directory = str(pathlib.Path().absolute()) + "/comparing_content_" + str(datetime.today().strftime('%Y-%m-%d-%H_%M'))
+os.mkdir(target_directory)
+
+#Initialize Looker SDK
+sdk = looker_sdk.init31(section="sample")  # or init40() for v4.0 API
 
 # Function to switch branches
 def switch_session(dev_or_production):
         sdk.session()
         sdk.update_session(body = models.WriteApiSession(workspace_id = dev_or_production))
 
-def checkout_dev_branch(branch_name, lookml_project):
-        branch = models.WriteGitBranch(name=branch_name)
-        sdk.update_git_branch(project_id=lookml_project, body=branch)
+# Function to checkout git branches in Looker
+def checkout_dev_branch(branch_name,lookml_project):
+  branch = models.WriteGitBranch(name=branch_name)
+  sdk.update_git_branch(project_id=lookml_project, body=branch)
 
-# Pull from the remote repo. Any non-committed changes will NOT be considered during the dashboard checks
+# Funtion to pull from the remote repo. Any non-committed changes will NOT be considered during the dashboard checks
 def sync_dev_branch_to_remote(lookml_project):
-        sdk.reset_project_to_remote(project_id=lookml_project)
+  sdk.reset_project_to_remote(project_id=lookml_project)
 
-def compare_results():
-        discrepancy_counter=0
-        key_counter = 0
-        for key in results_dev:
-                key_counter += 1
-                if results_dev[key] != results_prod[key]:
-                        if output_differences is True or output_results is True:
-                                dash_logs.info("Dashboard " +  key.split('||||')[0] + "'s Tile with Title '" + key.split('||||')[1] + "' DOES NOT MATCH Results are as follows:")
-                                dash_logs.info(results_dev[key])
-                                dash_logs.info(results_prod[key])
-                        dash_logs.warning("Discrepancies found in results. Dashboard " +  key.split('||||')[0] + "'s Tile with Title '" + key.split('||||')[1] + "' Does Not Match. Proceed with caution and fix any errors prior to committing")
-                        discrepancy_counter += 1
-                else:
-                        if output_results is True:
-                                dash_logs.info("Dashboard " +  key.split('||||')[0] + "'s Tile with Title '" + key.split('||||')[1] + "' MATCHES Results are as follows:")
-                                dash_logs.info(results_dev[key])
-                                dash_logs.info(results_prod[key])
+def compare_dataframes(test_name,df1,df2):
 
-        if discrepancy_counter == 0:
-                dash_logs.info("SUMMARY: Dashboard " +  key.split('||||')[0] + " was run for " + str(key_counter) + " tiles and Matches")
-        else:
-                dash_logs.info("Dashboard " +  key.split('||||')[0] + " was run for " + str(key_counter) + " tiles and " + str(discrepancy_counter) + " discrepancies found" ) 
-        # assert discrepancy_counter == 0, """
-        #         Discrepencies discovered. Please review logs, and correct affected dashboard(s).
-        #         """
+  df_compare_results = pd.DataFrame()
+  df_compare_results_sorted = pd.DataFrame()
+  #Order Matters
+  try:
+    df_compare_results = df1.equals(df2)
+  except:
+    df_compare_results = False
+
+  #Order Does Not Matter
+  try: 
+    df1_sorted = df1.sort_values(by=df1.columns.tolist()).reset_index(drop=True)
+    df2_sorted = df2.sort_values(by=df2.columns.tolist()).reset_index(drop=True)
+    df_compare_results_sorted = df1_sorted.compare(df2_sorted)
+  except:
+    df_compare_results_sorted = pd.DataFrame(['Unable to Compare Results'],columns=["Error Message"])
+
+  #Set Results
+  if df_compare_results:
+    compare_results = 'Passed'
+  else:
+    compare_results = 'Failed'
+  
+  if df_compare_results_sorted.empty:
+    compare_results_sorted = 'Passed'
+  else:
+    compare_results_sorted = 'Failed'
+
+  compare_result = pd.DataFrame(columns=["Test Name","Sorted Result","Unsorted Result"])
+  compare_result.loc[0] = [test_name,compare_results,compare_results_sorted]  
+  return(compare_result)
+
+def create_query_request(query):
+    q = query
+    return models.WriteQuery(
+        model=q.model,
+        view=q.view,
+        fields=q.fields,
+        pivots=q.pivots,
+        fill_fields=q.fill_fields,
+        filters=q.filters,
+        sorts=q.sorts,
+        limit=q.limit,
+        column_limit=q.column_limit,
+        total=q.total,
+        row_total=q.row_total,
+        subtotals=q.subtotals,
+        dynamic_fields=q.dynamic_fields,
+        query_timezone=q.query_timezone,
+        filter_expression=q.filter_expression,
+        vis_config=q.vis_config
+    )
+
+def Merge(dict1, dict2):
+    res = {**dict1, **dict2}
+    return res
+
+def get_default_look_filter_values(look_id):
+  elements = sdk.look(look_id)
+  element_query = elements.query
+  look_filter_details = element_query.filters
+  if look_filter_details == None:
+    look_filter_details = {}
+  return(look_filter_details)
 
 def get_default_dashboard_filter_values(dashboard_id):
-        dashboard_filter_details = sdk.dashboard_dashboard_filters(dashboard_id)
-        dashboard_filter_defaults = [] # type: list
-        for filter in dashboard_filter_details:
-                dashboard_filter_defaults.append(
-                        {
-                                "dashboard_filter_title":filter.title,
-                                "dashboard_filter_name":filter.name,
-                                "filter_default_value":filter.default_value,
-                        }
-                )
-        return(dashboard_filter_defaults)
+  dashboard_filter_details = sdk.dashboard_dashboard_filters(dashboard_id)
+  dashboard_filter_defaults = [] # type: list
+  for filter in dashboard_filter_details:
+    dashboard_filter_defaults.append(
+    {
+      "dashboard_filter_name":filter.name,
+      "filter_default_value":filter.default_value,
+    }
+    )
+  return(dashboard_filter_defaults)
 
-def generate_results(dashboard_id, dashboard_config_filters):    
-        #  Get default filter values
-        default_dashboard_filter_values = get_default_dashboard_filter_values(dashboard_id)
-        # Update the default values with the user fed test values
-        for key in dashboard_config_filters:
-                for dic in default_dashboard_filter_values:
-                        if dic['dashboard_filter_name'] == key:
-                                dic['filter_default_value'] = dashboard_config_filters[key]
-        # Loop through Dev and Prod mode
-        for environment in environments:
-                dev_or_production = environment
-                switch_session(environment)
-                if environment == 'dev' and branch_name:
-                        checkout_dev_branch(branch_name, lookml_project)
-                        sync_dev_branch_to_remote(lookml_project)
+def get_dashboard_element_query(dashboard_element):
+  query = None
+  if dashboard_element.type == 'vis':
+    if dashboard_element.look_id:
+      query = dashboard_element.look.query
+    else:
+      query = dashboard_element.query
+  return(query)
 
-                # Loop through the tiles and generate results
-                elements = sdk.dashboard_dashboard_elements(dashboard_id)
-                for element in elements:
-                        if (element.query == None and element.look_id ==  None)or element.merge_result_id != None:
-                        # Skip text tiles and merged results
-                                continue
-                        else:
-                                if element.look_id !=  None:
-                                        #If Look, need to access the Look object first
-                                        element_query = element.look.query
-                                        title = element.look.title
-                                else:
-                                        element_query = element.query
-                                        title = element.title
-                        #  Pull all the parts of the tile's query: 
-                        tile_filter_expression = element_query.filter_expression
-                        tile_model = element_query.model
-                        tile_view = element_query.view
-                        tile_fields = element_query.fields
-                        tile_pivots = element_query.pivots
-                        tile_sorts = element_query.sorts
-                        tile_query_timezone = element_query.query_timezone
-                        tile_limit = element_query.limit
-                        tile_total = element_query.total
-                        tile_row_total = element_query.row_total
-                        tile_fill_fields = element_query.fill_fields
-                        tile_dynamic_fields= element_query.dynamic_fields
-                        #  These are the filters that were created when the tile was created
-                        tile_level_filters = element_query.filters
-                         #  If no filters are applied, set to blank dictionary
-                        if tile_level_filters == None:
-                                tile_level_filters = {} # type: dict
-                        # These are the filters that are applied via the dashboard and listening. 
-                        # Since dashboard level filters do not have to be applied to every tile, this needs to be checked per tile
-                        dashboard_level_filters_for_tile = element.result_maker.filterables[0]
-                        listeners = vars(dashboard_level_filters_for_tile)['listen']
-                        # Setup blank dict to hold the tiles default filters
-                        tile_default_filters =  [] # type: list
-                        # Loop through and get the dashboard defaults for the current tile and populate list. 
-                        # This is compared against the dashboard defaults so only the defaults that apply to the listener are pulled
-                        for listener in listeners:
-                                listener = vars(listener)
-                                for default in default_dashboard_filter_values:
-                                        if listener['dashboard_filter_name'] == default['dashboard_filter_name']:
-                                                listener.update({'value':default['filter_default_value']})
-                                                listener.update({'field':listener['field']})
-                                                tile_default_filters.append(listener)
-                        # Reformat tile defaults into single dict to make for easier comparison
-                        tile_defaults_for_comp = {}
-                        for dic in tile_default_filters:
-                                del dic['dashboard_filter_name']
-                                field = dic['field']
-                                value = dic['value']
-                                tile_defaults_for_comp[field]=value
-                
-                        # Use Dictionary unpacking to merge. Filters set in the dashboard_tests_config.csv file take precedence, then default filters, then finally the tile filters
-                        all_applicable_filters = {**tile_level_filters,**tile_defaults_for_comp}                                              
-                        # # Create the final Write Query Model                                       
-                        prep_query = models.WriteQuery(
-                                model=tile_model,
-                                view=tile_view,
-                                fields=tile_fields,
-                                pivots=tile_pivots,
-                                sorts=tile_sorts,
-                                query_timezone=tile_query_timezone,
-                                limit=tile_limit,
-                                total=tile_total,
-                                row_total=tile_row_total,
-                                fill_fields=tile_fill_fields,
-                                dynamic_fields=tile_dynamic_fields,
-                                filters = all_applicable_filters
-                )
-                # Run the tile and output it to either the dev or prod dictionary 
-                        if dev_or_production == "dev":
-                                try:
-                                        results_dev[dashboard_id + "||||" + title] = json.loads(sdk.run_inline_query(result_format="json",body=prep_query),object_pairs_hook=OrderedDict)
-                                except:
-                                        json_query_error= """{"query status" : "query error - check for missing fields, joins, views, explores"}"""
-                                        results_dev[dashboard_id + "||||" + title] = json.loads(json_query_error)
-                        else:
-                                try:
-                                        results_prod[dashboard_id + "||||" + title] = json.loads(sdk.run_inline_query(result_format="json",body=prep_query),object_pairs_hook=OrderedDict)
-                                except:
-                                        json_query_error= """{"query status" : "query error - check for missing fields, joins, views, explores"}"""
-                                        results_prod[dashboard_id + "||||" + title] = json.loads(json_query_error)
-        # Run the compare results function. Then clean up dictionaries used for comparisons
-        compare_results()
-        results_dev.clear()
-        results_prod.clear()
+def get_default_dashboard_element_filter_values(dashboard_element_id):
+  dashboard_element = sdk.dashboard_element(dashboard_element_id)
+  query = get_dashboard_element_query(dashboard_element)
+  dashboard_element_filter_details = query.filters
+  return(dashboard_element_filter_details)
+
+def get_default_dashboard_tile_filter_values(dashboard_id, dashboard_element_id,dashboard_filters_config):
+  dashboard_filters = get_default_dashboard_filter_values(dashboard_id)
+  dashboard_element_filters = get_default_dashboard_element_filter_values(dashboard_element_id)
+  result_maker = sdk.dashboard_element(dashboard_element_id).result_maker.filterables[0].listen
+
+  #Loop Through Dashboard Filter Config to Update Dashboard Filters
+  for dashboard_filter_config in dashboard_filters_config:
+    for dashboard_filter in dashboard_filters:
+      if dashboard_filter['dashboard_filter_name'] == dashboard_filter_config:
+        dashboard_filter['filter_default_value'] = dashboard_filters_config[dashboard_filter_config]
+
+  #Loop Through Dashboard Filters
+  for dashboard_filter in dashboard_filters:
+    #Determine if tile listens to dashboard filter
+    for listen_filter in result_maker:
+      if dashboard_filter['dashboard_filter_name'] == listen_filter.dashboard_filter_name:
+        #Determine if overwriting tile filter or additional filter 
+        if dashboard_element_filters:
+          if listen_filter.field in dashboard_element_filters:
+            dashboard_element_filters[listen_filter.field] = dashboard_filter['filter_default_value']
+          else:
+            dashboard_element_filters[listen_filter.field] = dashboard_filter['filter_default_value']
+  return(dashboard_element_filters)
+
+def generate_tile_results(dashboard_id, dashboard_element_id, dashboard_filters_config):
+  #Determine Tile Filters
+  dashboard_tile_filters = get_default_dashboard_tile_filter_values(dashboard_id,dashboard_element_id,dashboard_filters_config)
+  #Obtain Query
+  dashboard_element = sdk.dashboard_element(dashboard_element_id)
+  query = get_dashboard_element_query(dashboard_element)
+  query.filters = dashboard_tile_filters
+  query.client_id = None  #Need to remove for WriteQuery/RunInlineQuery
+  new_query = models.WriteQuery(model="initial",view="initial")
+  new_query.__dict__.update(query.__dict__)
+  results = sdk.run_inline_query(result_format='json',body=new_query,apply_formatting=True)
+  return(results)
+
+def determine_mode(branch_name):
+  environment = None
+  if branch_name == 'master':
+    environment = 'production'
+  else:
+    environment = 'dev'
+  return(environment)
 
 def main():
-        # Load user config file
-        with open('dashboard_tests_config.csv', newline='') as csvfile:
-                dashboard_config = csv.reader(csvfile, delimiter=',')
-#  Skip the first line of the CSV as the headers are just for data entry aid
-                next(csvfile)  
-                # Pull dashboard id and format the filter columns into a single filter dictionary, then generate results
-                for row in dashboard_config:
-                        dashboard_config_filters = {} # type: dict
-                        # Pull Dashboard Name and ID
-                        dashboard_name = row[0]
-                        dashboard_id = row[1]
-                        # Add all the user-entered filters into one dictionary
-                        for i in range(len(row)):
-                                if i >1 and i % 2 == 0:
-                                        name =row[i]
-                                        value =row[i+1]
-                                        dashboard_config_filters[name] = value
-                        generate_results(dashboard_id,dashboard_config_filters)           
+  results_summary = pd.DataFrame(columns=["Test Name","Sorted Result","Unsorted Result"])
+  # Load test config file
+  with open('content_tests_config.csv', newline='') as csvfile:
+    content_test_config = csv.reader(csvfile, delimiter=',')
+  # Skip the first line of the CSV as the headers are just for data entry aid
+    next(csvfile)  
+  # Pull test configurations into variables
+    for row in content_test_config:
+      test_name = row[0]
+      content_type = row[1]
+      content_a_id = row[2]
+      content_a_filter_config = json.loads(row[3])
+      content_a_branch = row[4]
+      content_b_id = row[5]
+      content_b_filter_config = json.loads(row[6])
+      content_b_branch = row[7]
+      content_a_environment = determine_mode(content_a_branch)
+      content_b_environment = determine_mode(content_b_branch)
+
+      #If the content type is Dashboard, then test 
+      if content_type == 'dashboards':
+        #Dashboards can only be compared on the same object, only content_a_id is considered
+        content_test_id = content_a_id
+        dashboard = sdk.dashboard(content_test_id)
+        #Comparisons will run on a tile by tile basis
+        for dashboard_element in dashboard.dashboard_elements:
+          #Only tests are being run on regular vis tiles, merge results are excluded
+          if dashboard_element.type == 'vis' and dashboard_element.merge_result_id == None:
+            content_test_element_id = dashboard_element.id
+            for test_component in test_components:
+              if test_component == 'a':
+                content_test_filter_config = content_a_filter_config
+                content_test_branch = content_a_branch
+                content_test_environment = content_a_environment
+              else:
+                content_test_filter_config = content_b_filter_config
+                content_test_branch = content_b_branch  
+                content_test_environment = content_b_environment
+
+              query = get_dashboard_element_query(dashboard_element)
+              tile_model = sdk.lookml_model(query.model)
+              tile_project = tile_model.project_name
+              #Get into the correct environment
+              switch_session(content_test_environment)
+              if content_test_environment == 'dev' and content_test_branch:
+                checkout_dev_branch(content_test_branch, tile_project)
+                sync_dev_branch_to_remote(tile_project)
+              results = generate_tile_results(content_test_id,content_test_element_id,content_test_filter_config)
+              #Run Query
+              if test_component == "a":
+                try:
+                  results_a = pd.read_json(results) #json.loads(,object_pairs_hook=OrderedDict)
+                except:
+                  results_a = pd.DataFrame(['Unable to obtain query results'],columns=["Error Message"])
+              else:
+                try:
+                  results_b = pd.read_json(results)
+                except:
+                  results_b = pd.DataFrame(['Unable to obtain query results'],columns=["Error Message"])
+
+            # Run the compare results function. Then clean up dictionaries used for comparisons
+            compare_result = compare_dataframes(test_name+"_"+content_test_element_id,results_a,results_b)
+            results_summary = results_summary.append(compare_result)
+            results_a.to_csv(target_directory+"/"+test_name+"_"+content_test_element_id+"_result_a.csv",index=False)
+            results_b.to_csv(target_directory+"/"+test_name+"_"+content_test_element_id+"_result_b.csv",index=False)
+            results_a = pd.DataFrame()
+            results_b = pd.DataFrame()
+      elif content_type == 'looks':
+        #For A and B
+        for test_component in test_components:
+          #Variables for test component being ran
+          if test_component == 'a':
+            content_test_id = content_a_id
+            content_test_filter_config = content_a_filter_config
+            content_test_branch = content_a_branch
+            content_test_environment = content_a_environment
+          else:
+            content_test_id = content_b_id
+            content_test_filter_config = content_b_filter_config
+            content_test_branch = content_b_branch  
+            content_test_environment = content_b_environment
+
+          #Obtain a base query
+          look = sdk.look(content_test_id)
+          look_model = sdk.lookml_model(look.query.model)
+          look_project = look_model.project_name
+          #Get into the correct environment
+          switch_session(content_test_environment)
+          if content_test_environment == 'dev' and content_test_branch:
+            checkout_dev_branch(content_test_branch, look_project)
+            sync_dev_branch_to_remote(look_project)
+          
+          #modify with new filters
+          # Get default filter values
+          default_look_filter_values = get_default_look_filter_values(content_a_id)
+          # Filter values for input the same way, merge will overwrite defaults from the csv
+          default_look_filter_values = Merge(default_look_filter_values, content_test_filter_config)
+          look.query.filters = default_look_filter_values
+          #Obtain a new query definition
+          look_query = create_query_request(look.query)
+          #Run Query
+          if test_component == "a":
+            try:
+              results_a = pd.read_json(sdk.run_inline_query(result_format="json",body=look_query)) #json.loads(,object_pairs_hook=OrderedDict)
+            except:
+              results_a = pd.DataFrame(['Unable to finish query in time for result a'],columns=["Error Message"])
+          else:
+            try:
+              results_b = pd.read_json(sdk.run_inline_query(result_format="json",body=look_query))
+            except:
+              results_b = pd.DataFrame(['Unable to finish query in time for result b'],columns=["Error Message"])
+
+        # Run the compare results function. Then clean up dictionaries used for comparisons
+        compare_result = compare_dataframes(test_name,results_a,results_b)
+        results_summary = results_summary.append(compare_result)
+        results_a.to_csv(target_directory+"/"+test_name+"_result_a.csv",index=False)
+        results_b.to_csv(target_directory+"/"+test_name+"_result_b.csv",index=False)
+        results_a = pd.DataFrame()
+        results_b = pd.DataFrame()
+      else:
+        print("Content " + content_type + " not recognized")
+        
+    results_summary.to_csv(target_directory+"/"+"00_test_summary.csv",index=False)
 
 if __name__ == "__main__":
     main()
