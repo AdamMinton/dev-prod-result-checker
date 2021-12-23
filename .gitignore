@@ -1,3 +1,5 @@
 looker.ini
 /comparing_content*
 .DS_STORE
+*.txt
+dashboard_tile.py
