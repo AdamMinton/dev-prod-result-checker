@@ -49,7 +49,7 @@ target_directory = str(pathlib.Path().absolute()) + "/comparing_content_" + str(
 os.mkdir(target_directory)
 
 #Initialize Looker SDK
-sdk = looker_sdk.init31(section="sample")  # or init40() for v4.0 API
+sdk = looker_sdk.init31(section="Looker")  # or init40() for v4.0 API
 
 # Function to switch branches
 def switch_session(dev_or_production):
@@ -65,23 +65,48 @@ def checkout_dev_branch(branch_name,lookml_project):
 def sync_dev_branch_to_remote(lookml_project):
   sdk.reset_project_to_remote(project_id=lookml_project)
 
-def compare_dataframes(test_name,df1,df2):
+def is_nested(result):
+  dictionary = result[0]
+  try:
+    result = any(isinstance(dictionary[i], dict) for i in dictionary)
+  except:
+    result = False
+  return(result)
+
+def compare_json(test_name,json1,json2):
 
   df_compare_results = pd.DataFrame()
   df_compare_results_sorted = pd.DataFrame()
+  df_failed_to_sort = None
+  
+  df1 = pd.read_json(json1)
+  json1 = json.loads(json1)
+  
+  df2 = pd.read_json(json2)
+  json2 = json.loads(json2)
+
   #Order Matters
   try:
     df_compare_results = df1.equals(df2)
   except:
     df_compare_results = False
 
-  #Order Does Not Matter
   try: 
-    df1_sorted = df1.sort_values(by=df1.columns.tolist()).reset_index(drop=True)
-    df2_sorted = df2.sort_values(by=df2.columns.tolist()).reset_index(drop=True)
-    df_compare_results_sorted = df1_sorted.compare(df2_sorted)
+    if is_nested(json1):
+      df1 = pd.json_normalize(json1)
+    df1 = df1.sort_values(by=df1.columns.tolist()).reset_index(drop=True)
+    df1 = df1.reindex(sorted(df1.columns), axis=1)
+    if is_nested(json2):
+      df2 = pd.json_normalize(json2)
+    df2 = df2.sort_values(by=df2.columns.tolist()).reset_index(drop=True)
+    df2 = df2.reindex(sorted(df2.columns), axis=1)
   except:
-    df_compare_results_sorted = pd.DataFrame(['Unable to Compare Results'],columns=["Error Message"])
+    df_failed_to_sort = True
+
+  try:
+    df_compare_results_sorted = df1.equals(df2)
+  except:
+    df_compare_results_sorted = False
 
   #Set Results
   if df_compare_results:
@@ -89,7 +114,9 @@ def compare_dataframes(test_name,df1,df2):
   else:
     compare_results = 'Failed'
   
-  if df_compare_results_sorted.empty:
+  if df_failed_to_sort:
+    compare_results_sorted = 'Unable to Test'
+  elif df_compare_results_sorted:
     compare_results_sorted = 'Passed'
   else:
     compare_results_sorted = 'Failed'
@@ -255,19 +282,21 @@ def main():
               #Run Query
               if test_component == "a":
                 try:
-                  results_a = pd.read_json(results) #json.loads(,object_pairs_hook=OrderedDict)
+                  results_a = results
                 except:
                   results_a = pd.DataFrame(['Unable to obtain query results'],columns=["Error Message"])
               else:
                 try:
-                  results_b = pd.read_json(results)
+                  results_b = results
                 except:
                   results_b = pd.DataFrame(['Unable to obtain query results'],columns=["Error Message"])
 
             # Run the compare results function. Then clean up dictionaries used for comparisons
-            compare_result = compare_dataframes(test_name+"_"+content_test_element_id,results_a,results_b)
+            compare_result = compare_json(test_name+"_"+content_test_element_id,results_a,results_b)
             results_summary = results_summary.append(compare_result)
+            results_a = pd.read_json(results_a)
             results_a.to_csv(target_directory+"/"+test_name+"_"+content_test_element_id+"_result_a.csv",index=False)
+            results_b = pd.read_json(results_b)
             results_b.to_csv(target_directory+"/"+test_name+"_"+content_test_element_id+"_result_b.csv",index=False)
             results_a = pd.DataFrame()
             results_b = pd.DataFrame()
@@ -307,19 +336,21 @@ def main():
           #Run Query
           if test_component == "a":
             try:
-              results_a = pd.read_json(sdk.run_inline_query(result_format="json",body=look_query)) #json.loads(,object_pairs_hook=OrderedDict)
+              results_a = sdk.run_inline_query(result_format="json",body=look_query) #json.loads(,object_pairs_hook=OrderedDict)
             except:
               results_a = pd.DataFrame(['Unable to finish query in time for result a'],columns=["Error Message"])
           else:
             try:
-              results_b = pd.read_json(sdk.run_inline_query(result_format="json",body=look_query))
+              results_b = sdk.run_inline_query(result_format="json",body=look_query)
             except:
               results_b = pd.DataFrame(['Unable to finish query in time for result b'],columns=["Error Message"])
 
         # Run the compare results function. Then clean up dictionaries used for comparisons
-        compare_result = compare_dataframes(test_name,results_a,results_b)
+        compare_result = compare_json(test_name,results_a,results_b)
         results_summary = results_summary.append(compare_result)
+        results_a = pd.read_json(results_a)
         results_a.to_csv(target_directory+"/"+test_name+"_result_a.csv",index=False)
+        results_b = pd.read_json(results_b)
         results_b.to_csv(target_directory+"/"+test_name+"_result_b.csv",index=False)
         results_a = pd.DataFrame()
         results_b = pd.DataFrame()
