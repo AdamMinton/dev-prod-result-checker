@@ -72,7 +72,6 @@ print(table)
 #test data complex
 table = []
 first_row = test_data_complex[0]
-#depth = depth(first_row) - 1 int list not callable error?
 depth = 4
 measures = ['Order Items Average Spend per Customer','Customers Count of Customers']
 regular_columns = ['Customers New Customer Indicator (Yes / No)','Customers Country']
@@ -84,126 +83,11 @@ for single_row in test_data_complex:
 
 print(table)
 
-# test_data_str = json.dumps(test_data)
-# df_test_data = pd.read_json(test_data_str)
+# This just flattens the line out to a bunch of columns, not really what I need
+# https://towardsdatascience.com/flattening-json-objects-in-python-f5343c794b10
+sample_object = test_data_complex[0]
+capture = pd.json_normalize(test_data_complex)
+capture = capture.sort_values(by=capture.columns.tolist()).reset_index(drop=True)
+capture = capture.reindex(sorted(capture.columns), axis=1)
 
-# def all_keys(dict_obj,current,max):
-#     ''' This function generates all keys of
-#         a nested dictionary. 
-#     '''
-#     if current <= max:
-#         # Iterate over all keys of the dictionary
-#         for key , value in dict_obj.items():
-#             current += 1
-#             yield key
-#             # If value is of dictionary type then yield all keys
-#             # in that nested dictionary
-#             if isinstance(value, dict):
-#                 for k in all_keys(value,current,max):
-#                     yield k
-
-
-#nest function here to get to lowest section
-# for pivot in pivot_columns:
-#     row = {}
-#     lowest = pivoted_section[pivot]
-#     i = 0
-#     for value in lowest:
-#         row[pivot] = lowest[value]
-#         table.append(row)
-    
-
-
-# columns = []
-# columns_new = first_row.keys() #['New Customer Indicator (Yes / No)', 'Average Spend per Customer']
-# for key in all_keys(first_row,1,depth):
-#     columns.append(key) #This provides all columns
-
-
-
-
-# for row in test_data:
-#     depth = depth(row)
-#     depth -= 1
-#     for key in all_keys(row,1,depth):
-#         print(key)
-#     print(row.keys())
-#     for key in row.keys():
-#         try:
-#             print(row[key].keys())
-#         except:
-#             print("none")
-
-# print(test_data[0]['Average Spend per Customer']['Traffic Source'].keys())
-#     # for key in all_keys(row):
-#     #     print(key)
-
-
-
-# for row in test_data:
-#     print(list(row.keys()))
-#     print(flatten_json(row))
-
-
-# def flatten_json_original(nested_json):
-#     """
-#         Flatten json object with nested keys into a single level.
-#         Args:
-#             nested_json: A nested json object.
-#         Returns:
-#             The flattened json object if successful, None otherwise.
-#     """
-#     out = {}
-
-#     def flatten(x, name=''):
-#         if type(x) is dict:
-#             for a in x:
-#                 flatten(x[a], name + a + '_')
-#         elif type(x) is list:
-#             i = 0
-#             for a in x:
-#                 flatten(a, name + str(i) + '_')
-#                 i += 1
-#         else:
-#             out[name[:-1]] = x
-
-#     flatten(nested_json)
-#     return out
-
-# # for row in test_data:
-# #     print(flatten_json_original(row))
-
-# def flatten_json(nested_json):
-#     """
-#         Flatten json object with nested keys into a single level.
-#         Args:
-#             nested_json: A nested json object.
-#         Returns:
-#             The flattened json object if successful, None otherwise.
-#     """
-#     out = {}
-#     columns=[]
-
-#     def flatten(x, columns):
-#         if type(x) is dict:
-#             for a in x:
-#                 columns.append(a)
-#                 flatten(x[a], columns)
-#         elif type(x) is list:
-#             i = 0
-#             for a in x:
-#                 columns.append(a)
-#                 flatten(a, columns)
-#                 i += 1
-#         else:
-#             #When I get here I have reached the bottom
-#             exit
-#             #out[columns[:-1]] = x
-
-#     flatten(nested_json,columns)
-#     return columns
-
-# print(flatten_json(test_data))
-
-#Step through the array to determine columns
-#Then Loop through and grab everything
+capture.to_csv('test.csv')
