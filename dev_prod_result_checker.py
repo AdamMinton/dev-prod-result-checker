@@ -78,43 +78,52 @@ def compare_json(test_name,json1,json2):
   df_compare_results = pd.DataFrame()
   df_compare_results_sorted = pd.DataFrame()
   df_failed_to_sort = None
+  df_failed_to_load = None
   
-  df1 = pd.read_json(json1)
-  json1 = json.loads(json1)
+  try:
+    df1 = pd.read_json(json1)
+    json1 = json.loads(json1)
+    df2 = pd.read_json(json2)
+    json2 = json.loads(json2)
+  except:
+    df_failed_to_load = True
+
   
-  df2 = pd.read_json(json2)
-  json2 = json.loads(json2)
+  if not df_failed_to_load:
+    #Order Matters
+    try:
+      df_compare_results = df1.equals(df2)
+    except:
+      df_compare_results = False
 
-  #Order Matters
-  try:
-    df_compare_results = df1.equals(df2)
-  except:
-    df_compare_results = False
+    try: 
+      if is_nested(json1):
+        df1 = pd.json_normalize(json1)
+      df1 = df1.sort_values(by=df1.columns.tolist()).reset_index(drop=True)
+      df1 = df1.reindex(sorted(df1.columns), axis=1)
+      if is_nested(json2):
+        df2 = pd.json_normalize(json2)
+      df2 = df2.sort_values(by=df2.columns.tolist()).reset_index(drop=True)
+      df2 = df2.reindex(sorted(df2.columns), axis=1)
+    except:
+      df_failed_to_sort = True
 
-  try: 
-    if is_nested(json1):
-      df1 = pd.json_normalize(json1)
-    df1 = df1.sort_values(by=df1.columns.tolist()).reset_index(drop=True)
-    df1 = df1.reindex(sorted(df1.columns), axis=1)
-    if is_nested(json2):
-      df2 = pd.json_normalize(json2)
-    df2 = df2.sort_values(by=df2.columns.tolist()).reset_index(drop=True)
-    df2 = df2.reindex(sorted(df2.columns), axis=1)
-  except:
-    df_failed_to_sort = True
-
-  try:
-    df_compare_results_sorted = df1.equals(df2)
-  except:
-    df_compare_results_sorted = False
+    try:
+      df_compare_results_sorted = df1.equals(df2)
+    except:
+      df_compare_results_sorted = False
 
   #Set Results
-  if df_compare_results:
+  if df_failed_to_load:
+    compare_results = 'Unable to Load'
+  elif df_compare_results:
     compare_results = 'Passed'
   else:
     compare_results = 'Failed'
   
-  if df_failed_to_sort:
+  if df_failed_to_load:
+    compare_results_sorted = 'Unable to Test'
+  elif df_failed_to_sort:
     compare_results_sorted = 'Unable to Test'
   elif df_compare_results_sorted:
     compare_results_sorted = 'Passed'
@@ -249,7 +258,7 @@ def main():
       content_b_branch = row[7]
       content_a_environment = determine_mode(content_a_branch)
       content_b_environment = determine_mode(content_b_branch)
-
+      print("Starting test " + test_name)
       #If the content type is Dashboard, then test 
       if content_type == 'dashboards':
         #Dashboards can only be compared on the same object, only content_a_id is considered
@@ -294,10 +303,30 @@ def main():
             # Run the compare results function. Then clean up dictionaries used for comparisons
             compare_result = compare_json(test_name+"_"+content_test_element_id,results_a,results_b)
             results_summary = results_summary.append(compare_result)
-            results_a = pd.read_json(results_a)
-            results_a.to_csv(target_directory+"/"+test_name+"_"+content_test_element_id+"_result_a.csv",index=False)
-            results_b = pd.read_json(results_b)
-            results_b.to_csv(target_directory+"/"+test_name+"_"+content_test_element_id+"_result_b.csv",index=False)
+            #Output Files
+
+            result_a_file = target_directory+"/"+test_name+"_"+content_test_element_id+"_result_a.csv"
+            result_b_file = target_directory+"/"+test_name+"_"+content_test_element_id+"_result_b.csv"
+            try:
+              results_a = pd.read_json(results_a)
+              results_a.to_csv(result_a_file,index=False)
+            except:
+              with open(result_a_file, 'w', newline = '') as csvfile:
+                my_writer = csv.writer(csvfile, delimiter = ' ')
+                my_writer.writerow(results_a)
+            try:
+              results_b = pd.read_json(results_b)
+              results_b.to_csv(result_b_file,index=False)
+            except:
+              with open(result_b_file, 'w', newline = '') as csvfile:
+                my_writer = csv.writer(csvfile, delimiter = ' ')
+                my_writer.writerow(results_b)
+
+            # results_a = pd.read_json(results_a)
+            # results_a.to_csv(target_directory+"/"+test_name+"_"+content_test_element_id+"_result_a.csv",index=False)
+            # results_b = pd.read_json(results_b)
+            # results_b.to_csv(target_directory+"/"+test_name+"_"+content_test_element_id+"_result_b.csv",index=False)
+            
             results_a = pd.DataFrame()
             results_b = pd.DataFrame()
       elif content_type == 'looks':
@@ -348,10 +377,22 @@ def main():
         # Run the compare results function. Then clean up dictionaries used for comparisons
         compare_result = compare_json(test_name,results_a,results_b)
         results_summary = results_summary.append(compare_result)
-        results_a = pd.read_json(results_a)
-        results_a.to_csv(target_directory+"/"+test_name+"_result_a.csv",index=False)
-        results_b = pd.read_json(results_b)
-        results_b.to_csv(target_directory+"/"+test_name+"_result_b.csv",index=False)
+        result_a_file = target_directory+"/"+test_name+"_result_a.csv"
+        result_b_file = target_directory+"/"+test_name+"_result_b.csv"
+        try:
+          results_a = pd.read_json(results_a)
+          results_a.to_csv(result_a_file,index=False)
+        except:
+          with open(result_a_file, 'w', newline = '') as csvfile:
+            my_writer = csv.writer(csvfile, delimiter = ' ')
+            my_writer.writerow(results_a)
+        try:
+          results_b = pd.read_json(results_b)
+          results_b.to_csv(result_b_file,index=False)
+        except:
+          with open(result_b_file, 'w', newline = '') as csvfile:
+            my_writer = csv.writer(csvfile, delimiter = ' ')
+            my_writer.writerow(results_b)
         results_a = pd.DataFrame()
         results_b = pd.DataFrame()
       else:
