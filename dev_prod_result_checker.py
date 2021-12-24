@@ -184,6 +184,8 @@ def get_dashboard_element_query(dashboard_element):
   if dashboard_element.type == 'vis':
     if dashboard_element.look_id:
       query = dashboard_element.look.query
+    elif dashboard_element.result_maker_id:
+      query = dashboard_element.result_maker.query
     else:
       query = dashboard_element.query
   return(query)
