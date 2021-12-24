@@ -52,7 +52,6 @@ Test Dashboard for Scheduling,dashboards,383,{},master,383,{},test_aragonite
 Test Dashboard with Look Based Tile,dashboards,532,{},master,532,{},test_aragonite
 Test Dashboard with Look Based Tile (copy),dashboards,535,{},master,535,{},test_aragonite
 Test Dashboard with Look not dependent,dashboards,534,{},master,534,{},test_aragonite
-Test Email Domains,dashboards,870,{},master,870,{},test_aragonite
 Test Filter,dashboards,701,{},master,701,{},test_aragonite
 Test New Dashboard,dashboards,365,{},master,365,{},test_aragonite
 Test Old,dashboards,509,{},master,509,{},test_aragonite
@@ -69,141 +68,141 @@ Testing Resolution,dashboards,406,{},master,406,{},test_aragonite
 Visual Drill Test,dashboards,866,{},master,866,{},test_aragonite
 Visualizations,dashboards,1080,{},master,1080,{},test_aragonite
 YTD Filter,dashboards,877,{},master,877,{},test_aragonite
-Avg Cust Lifetime Spend,look,811,{},master,811,{},test_aragonite
-Avg Cust Lifetime Spend,look,822,{},master,822,{},test_aragonite
-Avg Cust Lifetime Spend,look,629,{},master,629,{},test_aragonite
-Avg Cust Lifetime Spend,look,407,{},master,407,{},test_aragonite
-Avg Cust Lifetime Spend,look,709,{},master,709,{},test_aragonite
-Avg Cust Lifetime Spend,look,990,{},master,990,{},test_aragonite
-Avg Cust Lifetime Spend,look,991,{},master,991,{},test_aragonite
-Avg Customer Spend,look,855,{},master,855,{},test_aragonite
-Avg Customer Spend,look,395,{},master,395,{},test_aragonite
-Avg Customer Spend,look,992,{},master,992,{},test_aragonite
-Avg Customer Spend (copy),look,1090,{},master,1090,{},test_aragonite
-Avg Customer Spend Past 30 Days,look,810,{},master,810,{},test_aragonite
-Avg Customer Spend Past 30 Days,look,821,{},master,821,{},test_aragonite
-Avg Customer Spend Past 30 Days,look,610,{},master,610,{},test_aragonite
-Avg Customer Spend Past 30 Days,look,717,{},master,717,{},test_aragonite
-Customer Order Distribution,look,808,{},master,808,{},test_aragonite
-Customer Order Distribution,look,819,{},master,819,{},test_aragonite
-Customer Order Distribution,look,628,{},master,628,{},test_aragonite
-Customer Order Distribution,look,406,{},master,406,{},test_aragonite
-Customer Order Distribution,look,727,{},master,727,{},test_aragonite
-Customer Revenue Distribution,look,408,{},master,408,{},test_aragonite
-Customer Revenue Tier and Contribution,look,807,{},master,807,{},test_aragonite
-Customer Revenue Tier and Contribution,look,818,{},master,818,{},test_aragonite
-Customer Revenue Tier and Contribution,look,627,{},master,627,{},test_aragonite
-Customer Revenue Tier and Contribution,look,411,{},master,411,{},test_aragonite
-Customer Revenue Tier and Contribution,look,719,{},master,719,{},test_aragonite
-Daily Customer Growth,look,860,{},master,860,{},test_aragonite
-Daily Customer Growth,look,615,{},master,615,{},test_aragonite
-Daily Customer Growth,look,397,{},master,397,{},test_aragonite
-Daily Customer Growth,look,726,{},master,726,{},test_aragonite
-Daily Customer Growth,look,997,{},master,997,{},test_aragonite
-Daily Customer Growth (copy),look,1095,{},master,1095,{},test_aragonite
-Example 1,look,430,{},master,430,{},test_aragonite
-Example 1,look,441,{},master,441,{},test_aragonite
-Example 2,look,442,{},master,442,{},test_aragonite
-Example 3,look,443,{},master,443,{},test_aragonite
-Gross Margin,look,858,{},master,858,{},test_aragonite
-Gross Margin,look,394,{},master,394,{},test_aragonite
-Gross Margin,look,995,{},master,995,{},test_aragonite
-Gross Margin (copy),look,1093,{},master,1093,{},test_aragonite
-Gross Margin Last 30 Days,look,613,{},master,613,{},test_aragonite
-Gross Margin Last 30 Days,look,714,{},master,714,{},test_aragonite
-Gross Revenue and Margin % Past 12 Months,look,859,{},master,859,{},test_aragonite
-Gross Revenue and Margin % Past 12 Months,look,614,{},master,614,{},test_aragonite
-Gross Revenue and Margin % Past 12 Months,look,404,{},master,404,{},test_aragonite
-Gross Revenue and Margin % Past 12 Months,look,710,{},master,710,{},test_aragonite
-Gross Revenue and Margin % Past 12 Months,look,996,{},master,996,{},test_aragonite
-Gross Revenue and Margin % Past 12 Months (copy),look,1094,{},master,1094,{},test_aragonite
-Inventory Report A,look,436,{},master,436,{},test_aragonite
-Inventory Report A,look,728,{},master,728,{},test_aragonite
-Large Email,look,526,{},master,526,{},test_aragonite
-megalista_testing,look,784,{},master,784,{},test_aragonite
-New Customers,look,857,{},master,857,{},test_aragonite
-New Customers,look,612,{},master,612,{},test_aragonite
-New Customers,look,392,{},master,392,{},test_aragonite
-New Customers,look,720,{},master,720,{},test_aragonite
-New Customers,look,994,{},master,994,{},test_aragonite
-New Customers (copy),look,1092,{},master,1092,{},test_aragonite
-New vs Old Customers Sales Makeup,look,809,{},master,809,{},test_aragonite
-New vs Old Customers Sales Makeup,look,820,{},master,820,{},test_aragonite
-New vs Old Customers Sales Makeup,look,616,{},master,616,{},test_aragonite
-New vs Old Customers Sales Makeup,look,399,{},master,399,{},test_aragonite
-New vs Old Customers Sales Makeup,look,723,{},master,723,{},test_aragonite
-New vs Old Customers Sales Makeup,look,998,{},master,998,{},test_aragonite
-New vs Old Customers Sales Makeup (copy 2),look,1096,{},master,1096,{},test_aragonite
-New vs Old Customers Sales Makeup (copy),look,861,{},master,861,{},test_aragonite
-Profitability by Location,look,862,{},master,862,{},test_aragonite
-Profitability by Location,look,617,{},master,617,{},test_aragonite
-Profitability by Location,look,401,{},master,401,{},test_aragonite
-Profitability by Location,look,711,{},master,711,{},test_aragonite
-Profitability by Location,look,999,{},master,999,{},test_aragonite
-Profitability by Location (copy),look,1097,{},master,1097,{},test_aragonite
-Revenue by Gender and Age,look,812,{},master,812,{},test_aragonite
-Revenue by Gender and Age,look,823,{},master,823,{},test_aragonite
-Revenue by Gender and Age,look,619,{},master,619,{},test_aragonite
-Revenue by Gender and Age,look,398,{},master,398,{},test_aragonite
-Revenue by Gender and Age,look,715,{},master,715,{},test_aragonite
-Revenue by Gender and Age,look,1001,{},master,1001,{},test_aragonite
-Revenue by Gender and Age (copy 2),look,1099,{},master,1099,{},test_aragonite
-Revenue by Gender and Age (copy),look,864,{},master,864,{},test_aragonite
-Revenue Source Comparison,look,863,{},master,863,{},test_aragonite
-Revenue Source Comparison,look,618,{},master,618,{},test_aragonite
-Revenue Source Comparison,look,400,{},master,400,{},test_aragonite
-Revenue Source Comparison,look,432,{},master,432,{},test_aragonite
-Revenue Source Comparison,look,718,{},master,718,{},test_aragonite
-Revenue Source Comparison,look,1000,{},master,1000,{},test_aragonite
-Revenue Source Comparison (copy),look,1098,{},master,1098,{},test_aragonite
-Row,look,666,{},master,666,{},test_aragonite
-Row limit test,look,521,{},master,521,{},test_aragonite
-Sales Yesterday,look,856,{},master,856,{},test_aragonite
-Sales Yesterday,look,611,{},master,611,{},test_aragonite
-Sales Yesterday,look,393,{},master,393,{},test_aragonite
-Sales Yesterday,look,725,{},master,725,{},test_aragonite
-Sales Yesterday,look,993,{},master,993,{},test_aragonite
-Sales Yesterday (copy),look,1091,{},master,1091,{},test_aragonite
-test,look,815,{},master,815,{},test_aragonite
-Test,look,643,{},master,643,{},test_aragonite
-Test Age,look,829,{},master,829,{},test_aragonite
-Test for Subtotal Query,look,655,{},master,655,{},test_aragonite
-Test Look,look,684,{},master,684,{},test_aragonite
-Test Look,look,686,{},master,686,{},test_aragonite
-Test Look 2,look,685,{},master,685,{},test_aragonite
-Test Look for Content Usage,look,509,{},master,509,{},test_aragonite
-test measure in the middle,look,813,{},master,813,{},test_aragonite
-Test Megalista Look,look,783,{},master,783,{},test_aragonite
-Test Passing Space,look,463,{},master,463,{},test_aragonite
-testest,look,798,{},master,798,{},test_aragonite
-Testing Linking,look,508,{},master,508,{},test_aragonite
-Testtest,look,806,{},master,806,{},test_aragonite
-test_b_192046433,look,816,{},master,816,{},test_aragonite
-test_b_192046433_legacy,look,817,{},master,817,{},test_aragonite
-Top Products,look,865,{},master,865,{},test_aragonite
-Top Products,look,620,{},master,620,{},test_aragonite
-Top Products,look,402,{},master,402,{},test_aragonite
-Top Products,look,713,{},master,713,{},test_aragonite
-Top Products,look,1002,{},master,1002,{},test_aragonite
-Top Products (copy),look,1100,{},master,1100,{},test_aragonite
-Website Bounce Rate,look,624,{},master,624,{},test_aragonite
-Website Bounce Rate,look,417,{},master,417,{},test_aragonite
-Website Bounce Rate,look,712,{},master,712,{},test_aragonite
-Website Conversion Rate,look,622,{},master,622,{},test_aragonite
-Website Conversion Rate,look,418,{},master,418,{},test_aragonite
-Website Conversion Rate,look,722,{},master,722,{},test_aragonite
-Website Dynamic Metric,look,623,{},master,623,{},test_aragonite
-Website Dynamic Metric,look,415,{},master,415,{},test_aragonite
-Website Dynamic Metric,look,721,{},master,721,{},test_aragonite
-Website Session Traffic,look,626,{},master,626,{},test_aragonite
-Website Session Traffic,look,419,{},master,419,{},test_aragonite
-Website Session Traffic,look,716,{},master,716,{},test_aragonite
-Website Traffic Source,look,625,{},master,625,{},test_aragonite
-Website Traffic Source,look,416,{},master,416,{},test_aragonite
-Website Traffic Source,look,708,{},master,708,{},test_aragonite
-Yearly Revenue Trend,look,866,{},master,866,{},test_aragonite
-Yearly Revenue Trend,look,621,{},master,621,{},test_aragonite
-Yearly Revenue Trend,look,396,{},master,396,{},test_aragonite
-Yearly Revenue Trend,look,724,{},master,724,{},test_aragonite
-Yearly Revenue Trend,look,1003,{},master,1003,{},test_aragonite
-Yearly Revenue Trend (copy),look,1101,{},master,1101,{},test_aragonite
+Avg Cust Lifetime Spend,looks,811,{},master,811,{},test_aragonite
+Avg Cust Lifetime Spend,looks,822,{},master,822,{},test_aragonite
+Avg Cust Lifetime Spend,looks,629,{},master,629,{},test_aragonite
+Avg Cust Lifetime Spend,looks,407,{},master,407,{},test_aragonite
+Avg Cust Lifetime Spend,looks,709,{},master,709,{},test_aragonite
+Avg Cust Lifetime Spend,looks,990,{},master,990,{},test_aragonite
+Avg Cust Lifetime Spend,looks,991,{},master,991,{},test_aragonite
+Avg Customer Spend,looks,855,{},master,855,{},test_aragonite
+Avg Customer Spend,looks,395,{},master,395,{},test_aragonite
+Avg Customer Spend,looks,992,{},master,992,{},test_aragonite
+Avg Customer Spend (copy),looks,1090,{},master,1090,{},test_aragonite
+Avg Customer Spend Past 30 Days,looks,810,{},master,810,{},test_aragonite
+Avg Customer Spend Past 30 Days,looks,821,{},master,821,{},test_aragonite
+Avg Customer Spend Past 30 Days,looks,610,{},master,610,{},test_aragonite
+Avg Customer Spend Past 30 Days,looks,717,{},master,717,{},test_aragonite
+Customer Order Distribution,looks,808,{},master,808,{},test_aragonite
+Customer Order Distribution,looks,819,{},master,819,{},test_aragonite
+Customer Order Distribution,looks,628,{},master,628,{},test_aragonite
+Customer Order Distribution,looks,406,{},master,406,{},test_aragonite
+Customer Order Distribution,looks,727,{},master,727,{},test_aragonite
+Customer Revenue Distribution,looks,408,{},master,408,{},test_aragonite
+Customer Revenue Tier and Contribution,looks,807,{},master,807,{},test_aragonite
+Customer Revenue Tier and Contribution,looks,818,{},master,818,{},test_aragonite
+Customer Revenue Tier and Contribution,looks,627,{},master,627,{},test_aragonite
+Customer Revenue Tier and Contribution,looks,411,{},master,411,{},test_aragonite
+Customer Revenue Tier and Contribution,looks,719,{},master,719,{},test_aragonite
+Daily Customer Growth,looks,860,{},master,860,{},test_aragonite
+Daily Customer Growth,looks,615,{},master,615,{},test_aragonite
+Daily Customer Growth,looks,397,{},master,397,{},test_aragonite
+Daily Customer Growth,looks,726,{},master,726,{},test_aragonite
+Daily Customer Growth,looks,997,{},master,997,{},test_aragonite
+Daily Customer Growth (copy),looks,1095,{},master,1095,{},test_aragonite
+Example 1,looks,430,{},master,430,{},test_aragonite
+Example 1,looks,441,{},master,441,{},test_aragonite
+Example 2,looks,442,{},master,442,{},test_aragonite
+Example 3,looks,443,{},master,443,{},test_aragonite
+Gross Margin,looks,858,{},master,858,{},test_aragonite
+Gross Margin,looks,394,{},master,394,{},test_aragonite
+Gross Margin,looks,995,{},master,995,{},test_aragonite
+Gross Margin (copy),looks,1093,{},master,1093,{},test_aragonite
+Gross Margin Last 30 Days,looks,613,{},master,613,{},test_aragonite
+Gross Margin Last 30 Days,looks,714,{},master,714,{},test_aragonite
+Gross Revenue and Margin % Past 12 Months,looks,859,{},master,859,{},test_aragonite
+Gross Revenue and Margin % Past 12 Months,looks,614,{},master,614,{},test_aragonite
+Gross Revenue and Margin % Past 12 Months,looks,404,{},master,404,{},test_aragonite
+Gross Revenue and Margin % Past 12 Months,looks,710,{},master,710,{},test_aragonite
+Gross Revenue and Margin % Past 12 Months,looks,996,{},master,996,{},test_aragonite
+Gross Revenue and Margin % Past 12 Months (copy),looks,1094,{},master,1094,{},test_aragonite
+Inventory Report A,looks,436,{},master,436,{},test_aragonite
+Inventory Report A,looks,728,{},master,728,{},test_aragonite
+Large Email,looks,526,{},master,526,{},test_aragonite
+megalista_testing,looks,784,{},master,784,{},test_aragonite
+New Customers,looks,857,{},master,857,{},test_aragonite
+New Customers,looks,612,{},master,612,{},test_aragonite
+New Customers,looks,392,{},master,392,{},test_aragonite
+New Customers,looks,720,{},master,720,{},test_aragonite
+New Customers,looks,994,{},master,994,{},test_aragonite
+New Customers (copy),looks,1092,{},master,1092,{},test_aragonite
+New vs Old Customers Sales Makeup,looks,809,{},master,809,{},test_aragonite
+New vs Old Customers Sales Makeup,looks,820,{},master,820,{},test_aragonite
+New vs Old Customers Sales Makeup,looks,616,{},master,616,{},test_aragonite
+New vs Old Customers Sales Makeup,looks,399,{},master,399,{},test_aragonite
+New vs Old Customers Sales Makeup,looks,723,{},master,723,{},test_aragonite
+New vs Old Customers Sales Makeup,looks,998,{},master,998,{},test_aragonite
+New vs Old Customers Sales Makeup (copy 2),looks,1096,{},master,1096,{},test_aragonite
+New vs Old Customers Sales Makeup (copy),looks,861,{},master,861,{},test_aragonite
+Profitability by Location,looks,862,{},master,862,{},test_aragonite
+Profitability by Location,looks,617,{},master,617,{},test_aragonite
+Profitability by Location,looks,401,{},master,401,{},test_aragonite
+Profitability by Location,looks,711,{},master,711,{},test_aragonite
+Profitability by Location,looks,999,{},master,999,{},test_aragonite
+Profitability by Location (copy),looks,1097,{},master,1097,{},test_aragonite
+Revenue by Gender and Age,looks,812,{},master,812,{},test_aragonite
+Revenue by Gender and Age,looks,823,{},master,823,{},test_aragonite
+Revenue by Gender and Age,looks,619,{},master,619,{},test_aragonite
+Revenue by Gender and Age,looks,398,{},master,398,{},test_aragonite
+Revenue by Gender and Age,looks,715,{},master,715,{},test_aragonite
+Revenue by Gender and Age,looks,1001,{},master,1001,{},test_aragonite
+Revenue by Gender and Age (copy 2),looks,1099,{},master,1099,{},test_aragonite
+Revenue by Gender and Age (copy),looks,864,{},master,864,{},test_aragonite
+Revenue Source Comparison,looks,863,{},master,863,{},test_aragonite
+Revenue Source Comparison,looks,618,{},master,618,{},test_aragonite
+Revenue Source Comparison,looks,400,{},master,400,{},test_aragonite
+Revenue Source Comparison,looks,432,{},master,432,{},test_aragonite
+Revenue Source Comparison,looks,718,{},master,718,{},test_aragonite
+Revenue Source Comparison,looks,1000,{},master,1000,{},test_aragonite
+Revenue Source Comparison (copy),looks,1098,{},master,1098,{},test_aragonite
+Row,looks,666,{},master,666,{},test_aragonite
+Row limit test,looks,521,{},master,521,{},test_aragonite
+Sales Yesterday,looks,856,{},master,856,{},test_aragonite
+Sales Yesterday,looks,611,{},master,611,{},test_aragonite
+Sales Yesterday,looks,393,{},master,393,{},test_aragonite
+Sales Yesterday,looks,725,{},master,725,{},test_aragonite
+Sales Yesterday,looks,993,{},master,993,{},test_aragonite
+Sales Yesterday (copy),looks,1091,{},master,1091,{},test_aragonite
+test,looks,815,{},master,815,{},test_aragonite
+Test,looks,643,{},master,643,{},test_aragonite
+Test Age,looks,829,{},master,829,{},test_aragonite
+Test for Subtotal Query,looks,655,{},master,655,{},test_aragonite
+Test looks,looks,684,{},master,684,{},test_aragonite
+Test looks,looks,686,{},master,686,{},test_aragonite
+Test Look 2,looks,685,{},master,685,{},test_aragonite
+Test Look for Content Usage,looks,509,{},master,509,{},test_aragonite
+test measure in the middle,looks,813,{},master,813,{},test_aragonite
+Test Megalista looks,looks,783,{},master,783,{},test_aragonite
+Test Passing Space,looks,463,{},master,463,{},test_aragonite
+testest,looks,798,{},master,798,{},test_aragonite
+Testing Linking,looks,508,{},master,508,{},test_aragonite
+Testtest,looks,806,{},master,806,{},test_aragonite
+test_b_192046433,looks,816,{},master,816,{},test_aragonite
+test_b_192046433_legacy,looks,817,{},master,817,{},test_aragonite
+Top Products,looks,865,{},master,865,{},test_aragonite
+Top Products,looks,620,{},master,620,{},test_aragonite
+Top Products,looks,402,{},master,402,{},test_aragonite
+Top Products,looks,713,{},master,713,{},test_aragonite
+Top Products,looks,1002,{},master,1002,{},test_aragonite
+Top Products (copy),looks,1100,{},master,1100,{},test_aragonite
+Website Bounce Rate,looks,624,{},master,624,{},test_aragonite
+Website Bounce Rate,looks,417,{},master,417,{},test_aragonite
+Website Bounce Rate,looks,712,{},master,712,{},test_aragonite
+Website Conversion Rate,looks,622,{},master,622,{},test_aragonite
+Website Conversion Rate,looks,418,{},master,418,{},test_aragonite
+Website Conversion Rate,looks,722,{},master,722,{},test_aragonite
+Website Dynamic Metric,looks,623,{},master,623,{},test_aragonite
+Website Dynamic Metric,looks,415,{},master,415,{},test_aragonite
+Website Dynamic Metric,looks,721,{},master,721,{},test_aragonite
+Website Session Traffic,looks,626,{},master,626,{},test_aragonite
+Website Session Traffic,looks,419,{},master,419,{},test_aragonite
+Website Session Traffic,looks,716,{},master,716,{},test_aragonite
+Website Traffic Source,looks,625,{},master,625,{},test_aragonite
+Website Traffic Source,looks,416,{},master,416,{},test_aragonite
+Website Traffic Source,looks,708,{},master,708,{},test_aragonite
+Yearly Revenue Trend,looks,866,{},master,866,{},test_aragonite
+Yearly Revenue Trend,looks,621,{},master,621,{},test_aragonite
+Yearly Revenue Trend,looks,396,{},master,396,{},test_aragonite
+Yearly Revenue Trend,looks,724,{},master,724,{},test_aragonite
+Yearly Revenue Trend,looks,1003,{},master,1003,{},test_aragonite
+Yearly Revenue Trend (copy),looks,1101,{},master,1101,{},test_aragonite

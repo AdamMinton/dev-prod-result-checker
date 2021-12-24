@@ -1,17 +1,3 @@
-# Purpose:::
-# Run a dashboard based on user selected filters in dev and prod mode and check for any discrepancies.
-# If all dashboard test run successfully, you can have confidence that your dev changes have not changed your production results
-
-# Script Overview:::
-# This test scripts takes user input in the form of the dashboards_test_config file
-# Users specify a dashboard name, id, and a list of filters with each distinct filter having one column for the name and one for the desired value
-# Filter logic pulls default filters, listening filters and tile filters. User input filter override defaults, which are applied on a per tile basis along wiht the tile's filters
-# Every tile is looped through and the results are stored in dictionaries. The dev and prod dictionaries are checked against each other
-# If no differences are found, the entire dashboard outputs as successful. 
-# Discrepancies are flagged on a per tile basis for user remediation 
-
-# import argparse 
-# import compare
 import csv
 import json
 import logging
@@ -286,10 +272,10 @@ def main():
               tile_project = tile_model.project_name
               #Get into the correct environment
               switch_session(content_test_environment)
-              if content_test_environment == 'dev' and content_test_branch:
-                checkout_dev_branch(content_test_branch, tile_project)
-                sync_dev_branch_to_remote(tile_project)
               try:
+                if content_test_environment == 'dev' and content_test_branch:
+                  checkout_dev_branch(content_test_branch, tile_project)
+                  sync_dev_branch_to_remote(tile_project)
                 results = generate_tile_results(content_test_id,content_test_element_id,content_test_filter_config)
               except:
                 results = pd.DataFrame(['Unable to obtain query results'],columns=["Error Message"])
@@ -343,24 +329,22 @@ def main():
           look_project = look_model.project_name
           #Get into the correct environment
           switch_session(content_test_environment)
-          if content_test_environment == 'dev' and content_test_branch:
-            checkout_dev_branch(content_test_branch, look_project)
-            sync_dev_branch_to_remote(look_project)
-          
-          #modify with new filters
-          # Get default filter values
-          default_look_filter_values = get_default_look_filter_values(content_a_id)
-          # Filter values for input the same way, merge will overwrite defaults from the csv
-          default_look_filter_values = Merge(default_look_filter_values, content_test_filter_config)
-          look.query.filters = default_look_filter_values
-          #Obtain a new query definition
-          look_query = create_query_request(look.query)
-          #Run Query
           try:
+            if content_test_environment == 'dev' and content_test_branch:
+              checkout_dev_branch(content_test_branch, look_project)
+              sync_dev_branch_to_remote(look_project)
+            #modify with new filters
+            # Get default filter values
+            default_look_filter_values = get_default_look_filter_values(content_a_id)
+            # Filter values for input the same way, merge will overwrite defaults from the csv
+            default_look_filter_values = Merge(default_look_filter_values, content_test_filter_config)
+            look.query.filters = default_look_filter_values
+            #Obtain a new query definition
+            look_query = create_query_request(look.query)
             results = sdk.run_inline_query(result_format="json",body=look_query)
           except:
             results = pd.DataFrame(['Unable to obtain query results'],columns=["Error Message"])
-          
+
           if test_component == "a":
             results_a = results
           else:
