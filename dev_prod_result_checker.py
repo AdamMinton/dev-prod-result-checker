@@ -289,19 +289,15 @@ def main():
               if content_test_environment == 'dev' and content_test_branch:
                 checkout_dev_branch(content_test_branch, tile_project)
                 sync_dev_branch_to_remote(tile_project)
-              results = generate_tile_results(content_test_id,content_test_element_id,content_test_filter_config)
+              try:
+                results = generate_tile_results(content_test_id,content_test_element_id,content_test_filter_config)
+              except:
+                results = pd.DataFrame(['Unable to obtain query results'],columns=["Error Message"])
               #Run Query
               if test_component == "a":
-                try:
-                  results_a = results
-                except:
-                  results_a = pd.DataFrame(['Unable to obtain query results'],columns=["Error Message"])
+                results_a = results
               else:
-                try:
-                  results_b = results
-                except:
-                  results_b = pd.DataFrame(['Unable to obtain query results'],columns=["Error Message"])
-
+                results_b = results
             # Run the compare results function. Then clean up dictionaries used for comparisons
             compare_result = compare_json(test_name+"_"+content_test_element_id,results_a,results_b)
             results_summary = results_summary.append(compare_result)
@@ -323,11 +319,6 @@ def main():
               with open(result_b_file, 'w', newline = '') as csvfile:
                 my_writer = csv.writer(csvfile, delimiter = ' ')
                 my_writer.writerow(results_b)
-
-            # results_a = pd.read_json(results_a)
-            # results_a.to_csv(target_directory+"/"+test_name+"_"+content_test_element_id+"_result_a.csv",index=False)
-            # results_b = pd.read_json(results_b)
-            # results_b.to_csv(target_directory+"/"+test_name+"_"+content_test_element_id+"_result_b.csv",index=False)
             
             results_a = pd.DataFrame()
             results_b = pd.DataFrame()
@@ -365,16 +356,15 @@ def main():
           #Obtain a new query definition
           look_query = create_query_request(look.query)
           #Run Query
+          try:
+            results = sdk.run_inline_query(result_format="json",body=look_query)
+          except:
+            results = pd.DataFrame(['Unable to obtain query results'],columns=["Error Message"])
+          
           if test_component == "a":
-            try:
-              results_a = sdk.run_inline_query(result_format="json",body=look_query) #json.loads(,object_pairs_hook=OrderedDict)
-            except:
-              results_a = pd.DataFrame(['Unable to finish query in time for result a'],columns=["Error Message"])
+            results_a = results
           else:
-            try:
-              results_b = sdk.run_inline_query(result_format="json",body=look_query)
-            except:
-              results_b = pd.DataFrame(['Unable to finish query in time for result b'],columns=["Error Message"])
+            results_b = results
 
         # Run the compare results function. Then clean up dictionaries used for comparisons
         compare_result = compare_json(test_name,results_a,results_b)
