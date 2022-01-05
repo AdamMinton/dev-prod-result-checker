@@ -13,6 +13,10 @@ from pyparsing import nestedExpr
 
 prettyprinter.install_extras(include=['attrs'])
 
+#File Names
+test_summary_file = "00_test_summary.csv"
+config_file = "small_config.csv"
+
 # Set up logger
 logging.getLogger().setLevel(logging.DEBUG)
 dash_logs = logging.getLogger('content_tests:')
@@ -24,15 +28,40 @@ dash_log_handler.setFormatter(formatter)
 dash_logs.addHandler(dash_log_handler)
 
 # Define variables for use in functions
-results_a = pd.DataFrame() #{} # type: dict
-results_b = pd.DataFrame() #{} # type: dict
 environments = ['dev','production']
 test_components = ['a','b']
 compare_result = pd.DataFrame(columns=["Test Name","Sorted Result","Unsorted Result"])
+results_a = pd.DataFrame()
+results_b = pd.DataFrame()
+test_name = None
+content_type = None
+content_a_id = None
+content_a_filter_config = None
+content_a_branch = None
+content_b_id = None
+content_b_filter_config = None
+content_b_branch = None
+content_test_element_id = None
+results_a = None
+results_b = None
+error_test_skipped_merge_results = None
+error_query_fails_to_run = None
+error_investigate_output = None
+error_merged_result = None
+error_content_type = None
+test_error_message = None
+extact_match_result = None
+unsorted_match_result = None
 
 #Create directory for storing testing results
 target_directory = str(pathlib.Path().absolute()) + "/comparing_content_" + str(datetime.today().strftime('%Y-%m-%d-%H_%M'))
 os.mkdir(target_directory)
+
+#Make summary file
+csv_header_line = "test_name" + "," + "content_type" + "," + "content_a_id" + "," + "content_b_id" + "," + "content_element_id" + "," + "extact_match_result" + "," + "unsorted_match_result" + "," + "test_error_message"
+with open(target_directory +'/'+test_summary_file,'a') as file:
+  file.write(csv_header_line)
+  file.write('\n')
 
 #Initialize Looker SDK
 sdk = looker_sdk.init31(section="Looker")  # or init40() for v4.0 API
@@ -60,7 +89,6 @@ def is_nested(result):
   return(result)
 
 def compare_json(test_name,json1,json2):
-
   df_compare_results = pd.DataFrame()
   df_compare_results_sorted = pd.DataFrame()
   df_failed_to_sort = None
@@ -227,14 +255,36 @@ def determine_mode(branch_name):
     environment = 'dev'
   return(environment)
 
+def output_results(target_directory, test_name, content_type, content_a_id, content_b_id, content_test_element_id, extact_match_result, unsorted_match_result, error_test_skipped_merge_results,error_query_fails_to_run,error_investigate_output,error_merged_result, error_content_type):
+  #output test result
+  #determine error message
+  if error_test_skipped_merge_results:
+    test_error_message = "TEST_SKIPPED_MERGE_RESULTS"
+  elif error_query_fails_to_run:
+    test_error_message = "QUERY_FAILS_TO_RUN"
+  elif error_investigate_output:
+    test_error_message = "INVESTIGATE_OUTPUT"
+  elif error_merged_result:
+    test_error_message = "MERGED_RESULT"
+  elif error_content_type:
+    test_error_message = "CONTENT_NOT_RECOGNIZED"
+  else:
+    test_error_message = ""
+
+  csv_line = test_name + "," + content_type + "," + str(content_a_id) + "," + str(content_b_id) + "," + content_test_element_id + "," + extact_match_result + "," + unsorted_match_result + "," + test_error_message
+  
+  with open(target_directory + '/' + test_summary_file,'a') as file:
+    file.write(csv_line)
+    file.write('\n')
+
 def main():
-  results_summary = pd.DataFrame(columns=["Test Name","Sorted Result","Unsorted Result"])
   # Load test config file
-  with open('content_tests_config.csv', newline='') as csvfile:
+  with open(config_file,'r', newline='') as csvfile:
     content_test_config = csv.reader(csvfile, delimiter=',')
-  # Skip the first line of the CSV as the headers are just for data entry aid
+    # Skip the first line of the CSV as the headers are just for data entry aid
     next(csvfile)  
-  # Pull test configurations into variables
+
+    # Pull test configurations into variables
     for row in content_test_config:
       test_name = row[0]
       content_type = row[1]
@@ -244,9 +294,18 @@ def main():
       content_b_id = row[5]
       content_b_filter_config = json.loads(row[6])
       content_b_branch = row[7]
+      #BUG: Need to update determine_mode for each query, because different projects have different named branches
       content_a_environment = determine_mode(content_a_branch)
       content_b_environment = determine_mode(content_b_branch)
-      print("Starting test " + test_name)
+      #Reset test
+      results_a = pd.DataFrame()
+      results_b = pd.DataFrame()
+      error_test_skipped_merge_results = False
+      error_query_fails_to_run = False
+      error_investigate_output = False
+      error_merged_result = False
+      error_content_type = False
+      print("Starting test: " + test_name)
       #If the content type is Dashboard, then test 
       if content_type == 'dashboards':
         #Dashboards can only be compared on the same object, only content_a_id is considered
@@ -254,6 +313,14 @@ def main():
         dashboard = sdk.dashboard(content_test_id)
         #Comparisons will run on a tile by tile basis
         for dashboard_element in dashboard.dashboard_elements:
+          #Reset test
+          results_a = pd.DataFrame()
+          results_b = pd.DataFrame()
+          error_test_skipped_merge_results = False
+          error_query_fails_to_run = False
+          error_investigate_output = False
+          error_merged_result = False
+          error_content_type = False
           #Only tests are being run on regular vis tiles, merge results are excluded
           if dashboard_element.type == 'vis' and dashboard_element.merge_result_id == None:
             content_test_element_id = dashboard_element.id
@@ -284,17 +351,18 @@ def main():
                 results_a = results
               else:
                 results_b = results
+            
             # Run the compare results function. Then clean up dictionaries used for comparisons
             compare_result = compare_json(test_name+"_"+content_test_element_id,results_a,results_b)
-            results_summary = results_summary.append(compare_result)
+            
             #Output Files
-
             result_a_file = target_directory+"/"+test_name+"_"+content_test_element_id+"_result_a.csv"
             result_b_file = target_directory+"/"+test_name+"_"+content_test_element_id+"_result_b.csv"
             try:
               results_a = pd.read_json(results_a)
               results_a.to_csv(result_a_file,index=False)
             except:
+              error_investigate_output = True
               with open(result_a_file, 'w', newline = '') as csvfile:
                 my_writer = csv.writer(csvfile, delimiter = ' ')
                 my_writer.writerow(results_a)
@@ -302,12 +370,20 @@ def main():
               results_b = pd.read_json(results_b)
               results_b.to_csv(result_b_file,index=False)
             except:
+              error_investigate_output = True
               with open(result_b_file, 'w', newline = '') as csvfile:
                 my_writer = csv.writer(csvfile, delimiter = ' ')
                 my_writer.writerow(results_b)
             
-            results_a = pd.DataFrame()
-            results_b = pd.DataFrame()
+            extact_match_result = compare_result["Sorted Result"].loc[0]
+            unsorted_match_result = compare_result["Unsorted Result"].loc[0]
+            output_results(target_directory, test_name, content_type, content_a_id, content_b_id, content_test_element_id, extact_match_result, unsorted_match_result, error_test_skipped_merge_results,error_query_fails_to_run,error_investigate_output,error_merged_result, error_content_type)
+
+          else:
+            print("Unable to Test Element - Merged Results Not Supported")
+            error_merged_result = True
+            output_results(target_directory, test_name, content_type, content_a_id, content_b_id, dashboard_element.id, "NA", "NA", error_test_skipped_merge_results,error_query_fails_to_run,error_investigate_output,error_merged_result, error_content_type)
+          
       elif content_type == 'looks':
         #For A and B
         for test_component in test_components:
@@ -352,13 +428,13 @@ def main():
 
         # Run the compare results function. Then clean up dictionaries used for comparisons
         compare_result = compare_json(test_name,results_a,results_b)
-        results_summary = results_summary.append(compare_result)
         result_a_file = target_directory+"/"+test_name+"_result_a.csv"
         result_b_file = target_directory+"/"+test_name+"_result_b.csv"
         try:
           results_a = pd.read_json(results_a)
           results_a.to_csv(result_a_file,index=False)
         except:
+          error_investigate_output = True
           with open(result_a_file, 'w', newline = '') as csvfile:
             my_writer = csv.writer(csvfile, delimiter = ' ')
             my_writer.writerow(results_a)
@@ -366,15 +442,18 @@ def main():
           results_b = pd.read_json(results_b)
           results_b.to_csv(result_b_file,index=False)
         except:
+          error_investigate_output = True
           with open(result_b_file, 'w', newline = '') as csvfile:
             my_writer = csv.writer(csvfile, delimiter = ' ')
             my_writer.writerow(results_b)
-        results_a = pd.DataFrame()
-        results_b = pd.DataFrame()
-      else:
-        print("Content " + content_type + " not recognized")
         
-    results_summary.to_csv(target_directory+"/"+"00_test_summary.csv",index=False)
+        extact_match_result = compare_result["Sorted Result"].loc[0]
+        unsorted_match_result = compare_result["Unsorted Result"].loc[0]
+        output_results(target_directory, test_name, content_type, content_a_id, content_b_id, "NA", extact_match_result, unsorted_match_result, error_test_skipped_merge_results,error_query_fails_to_run,error_investigate_output,error_merged_result, error_content_type)
+
+      else:
+        error_content_type = True
+        output_results(target_directory, test_name, content_type, content_a_id, content_b_id, "NA", "NA", "NA", error_test_skipped_merge_results,error_query_fails_to_run,error_investigate_output,error_merged_result, error_content_type)
 
 if __name__ == "__main__":
     main()
