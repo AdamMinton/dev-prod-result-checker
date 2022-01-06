@@ -81,10 +81,13 @@ def sync_dev_branch_to_remote(lookml_project):
   sdk.reset_project_to_remote(project_id=lookml_project)
 
 def is_nested(result):
-  dictionary = result[0]
-  try:
-    result = any(isinstance(dictionary[i], dict) for i in dictionary)
-  except:
+  if result != []:
+    dictionary = result[0]
+    try:
+      result = any(isinstance(dictionary[i], dict) for i in dictionary)
+    except:
+      result = False
+  else:
     result = False
   return(result)
 
@@ -93,6 +96,7 @@ def compare_json(test_name,json1,json2):
   df_compare_results_sorted = pd.DataFrame()
   df_failed_to_sort = None
   df_failed_to_load = None
+  df_empty_result = None
   
   try:
     df1 = pd.read_json(json1)
@@ -102,6 +106,8 @@ def compare_json(test_name,json1,json2):
   except:
     df_failed_to_load = True
 
+  if json1 == [] and json2 == []:
+    df_empty_result = True
   
   if not df_failed_to_load:
     #Order Matters
@@ -130,6 +136,8 @@ def compare_json(test_name,json1,json2):
   #Set Results
   if df_failed_to_load:
     compare_results = 'Unable to Load'
+  elif df_compare_results and df_empty_result:
+    compare_results = 'Passed - No Results'
   elif df_compare_results:
     compare_results = 'Passed'
   else:
@@ -139,6 +147,8 @@ def compare_json(test_name,json1,json2):
     compare_results_sorted = 'Unable to Test'
   elif df_failed_to_sort:
     compare_results_sorted = 'Unable to Test'
+  elif df_compare_results_sorted and df_empty_result:
+    compare_results_sorted = 'Passed - No Results'
   elif df_compare_results_sorted:
     compare_results_sorted = 'Passed'
   else:
