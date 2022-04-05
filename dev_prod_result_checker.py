@@ -15,7 +15,7 @@ prettyprinter.install_extras(include=['attrs'])
 
 #File Names
 test_summary_file = "00_test_summary.csv"
-config_file = "small_config.csv"
+config_file = "content_tests_config.csv"
 
 # Set up logger
 logging.getLogger().setLevel(logging.DEBUG)
@@ -65,6 +65,11 @@ with open(target_directory +'/'+test_summary_file,'a') as file:
 
 #Initialize Looker SDK
 sdk = looker_sdk.init31(section="Looker")  # or init40() for v4.0 API
+
+# Determine projects and production branches
+def get_projects_information():
+  projects = sdk.all_projects()
+  return(projects)
 
 # Function to switch branches
 def switch_session(dev_or_production):
@@ -257,9 +262,14 @@ def generate_tile_results(dashboard_id, dashboard_element_id, dashboard_filters_
   results = sdk.run_inline_query(result_format='json',body=new_query,apply_formatting=True)
   return(results)
 
-def determine_mode(branch_name):
+def determine_mode(projects, query_model, branch_name):
   environment = None
-  if branch_name == 'master':
+
+  for project in projects:
+    if project['name'] == query_model.project_name:
+      query_production_branch_name = project['git_production_branch_name']
+
+  if branch_name == query_production_branch_name:
     environment = 'production'
   else:
     environment = 'dev'
@@ -288,6 +298,9 @@ def output_results(target_directory, test_name, content_type, content_a_id, cont
     file.write('\n')
 
 def main():
+
+  projects = get_projects_information()
+
   # Load test config file
   with open(config_file,'r', newline='') as csvfile:
     content_test_config = csv.reader(csvfile, delimiter=',')
@@ -304,9 +317,6 @@ def main():
       content_b_id = row[5]
       content_b_filter_config = json.loads(row[6])
       content_b_branch = row[7]
-      #BUG: Need to update determine_mode for each query, because different projects have different named branches
-      content_a_environment = determine_mode(content_a_branch)
-      content_b_environment = determine_mode(content_b_branch)
       #Reset test
       results_a = pd.DataFrame()
       results_b = pd.DataFrame()
@@ -335,18 +345,18 @@ def main():
           if dashboard_element.type == 'vis' and dashboard_element.merge_result_id == None:
             content_test_element_id = dashboard_element.id
             for test_component in test_components:
-              if test_component == 'a':
-                content_test_filter_config = content_a_filter_config
-                content_test_branch = content_a_branch
-                content_test_environment = content_a_environment
-              else:
-                content_test_filter_config = content_b_filter_config
-                content_test_branch = content_b_branch  
-                content_test_environment = content_b_environment
-
               query = get_dashboard_element_query(dashboard_element)
               tile_model = sdk.lookml_model(query.model)
               tile_project = tile_model.project_name
+              if test_component == 'a':
+                content_test_filter_config = content_a_filter_config
+                content_test_branch = content_a_branch
+                content_test_environment = determine_mode(projects, tile_model, content_a_branch)
+              else:
+                content_test_filter_config = content_b_filter_config
+                content_test_branch = content_b_branch  
+                content_test_environment = determine_mode(projects, tile_model, content_b_branch)
+
               #Get into the correct environment
               switch_session(content_test_environment)
               try:
@@ -402,12 +412,12 @@ def main():
             content_test_id = content_a_id
             content_test_filter_config = content_a_filter_config
             content_test_branch = content_a_branch
-            content_test_environment = content_a_environment
+            content_test_environment = determine_mode(projects, tile_model, content_a_branch)
           else:
             content_test_id = content_b_id
             content_test_filter_config = content_b_filter_config
             content_test_branch = content_b_branch  
-            content_test_environment = content_b_environment
+            content_test_environment = determine_mode(projects, tile_model, content_b_branch)
 
           #Obtain a base query
           look = sdk.look(content_test_id)

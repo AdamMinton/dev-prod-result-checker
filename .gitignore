@@ -4,3 +4,7 @@ looker.ini
 *.txt
 dashboard_tile.py
 .python-version
+testing.py
+IMPROVEMENTS.MD
+small_config.csv
+etsy_config.csv

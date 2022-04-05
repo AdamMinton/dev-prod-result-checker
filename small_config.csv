@@ -1,3 +1,2 @@
 Test Name,Content Type,Component A Content ID, Component A Filter Config, Component A Branch, Component B Content ID, Component B Filter Config, Component B Branch
-Test 1,dashboards,1087,{},master,1087,{},test_aragonite
-Test 2,looks,822,{},master,822,{},test_aragonite
+Test 1,dashboards,1088,{},master,1088,{},test_aragonite
