@@ -10,6 +10,8 @@ from collections import OrderedDict
 from datetime import datetime
 from looker_sdk import models
 from pyparsing import nestedExpr
+from mdutils.mdutils import MdUtils
+
 
 prettyprinter.install_extras(include=['attrs'])
 
@@ -50,7 +52,7 @@ error_investigate_output = None
 error_merged_result = None
 error_content_type = None
 test_error_message = None
-extact_match_result = None
+exact_match_result = None
 unsorted_match_result = None
 
 #Create directory for storing testing results
@@ -58,7 +60,7 @@ target_directory = str(pathlib.Path().absolute()) + "/comparing_content_" + str(
 os.mkdir(target_directory)
 
 #Make summary file
-csv_header_line = "test_name" + "," + "content_type" + "," + "content_a_id" + "," + "content_b_id" + "," + "content_element_id" + "," + "extact_match_result" + "," + "unsorted_match_result" + "," + "test_error_message"
+csv_header_line = "test_name" + "," + "content_type" + "," + "content_a_id" + "," + "content_b_id" + "," + "content_element_id" + "," + "exact_match_result" + "," + "unsorted_match_result" + "," + "test_error_message"
 with open(target_directory +'/'+test_summary_file,'a') as file:
   file.write(csv_header_line)
   file.write('\n')
@@ -275,7 +277,7 @@ def determine_mode(projects, query_model, branch_name):
     environment = 'dev'
   return(environment)
 
-def output_results(target_directory, test_name, content_type, content_a_id, content_b_id, content_test_element_id, extact_match_result, unsorted_match_result, error_test_skipped_merge_results,error_query_fails_to_run,error_investigate_output,error_merged_result, error_content_type):
+def output_results(target_directory, test_name, content_type, content_a_id, content_b_id, content_test_element_id, exact_match_result, unsorted_match_result, error_test_skipped_merge_results,error_query_fails_to_run,error_investigate_output,error_merged_result, error_content_type):
   #output test result
   #determine error message
   if error_test_skipped_merge_results:
@@ -291,11 +293,45 @@ def output_results(target_directory, test_name, content_type, content_a_id, cont
   else:
     test_error_message = ""
 
-  csv_line = test_name + "," + content_type + "," + str(content_a_id) + "," + str(content_b_id) + "," + content_test_element_id + "," + extact_match_result + "," + unsorted_match_result + "," + test_error_message
+  csv_line = test_name + "," + content_type + "," + str(content_a_id) + "," + str(content_b_id) + "," + content_test_element_id + "," + exact_match_result + "," + unsorted_match_result + "," + test_error_message
   
   with open(target_directory + '/' + test_summary_file,'a') as file:
     file.write(csv_line)
     file.write('\n')
+
+def add_level(results):
+  errors = 0
+  warnings = 0
+  passes = 0
+  results = list(results)
+  for row in results:
+    if (row['exact_match_result'] == 'Failed' and row['unsorted_match_result'] == 'Failed') or row['test_error_message'] != '':
+      row['level'] = '⛔'
+      errors += 1
+    elif row['exact_match_result'] == 'Failed' and row['unsorted_match_result'] == 'Passed':
+      row['level'] = '🚧'
+      warnings += 1
+    else: 
+      row['level'] = '✅'
+      passes += 1
+    
+  summary = f"{errors} ⛔ | {warnings} 🚧 | {passes} ✅"
+  return(results,summary)
+
+def output_markdown(target_directory,results,summary):
+  mdFile = MdUtils(file_name=target_directory+'/'+'Content_Test_results',title='Content Test '+ summary)
+
+  column_headers = ["Test Name", "Content Type", "Content A ID", "Content B ID", "Content Element ID", "Exact Match", "Unsorted Match","Test Error Message","Level"]
+
+  number_of_columns = len(column_headers)
+  number_of_rows = 0
+  for row in results:
+      number_of_rows +=1
+      column_headers.extend(row.values())
+  
+  mdFile.new_line()
+  mdFile.new_table(columns=number_of_columns, rows=number_of_rows+1, text=column_headers)
+  mdFile.create_md_file()
 
 def main():
 
@@ -395,9 +431,9 @@ def main():
                 my_writer = csv.writer(csvfile, delimiter = ' ')
                 my_writer.writerow(results_b)
             
-            extact_match_result = compare_result["Sorted Result"].loc[0]
+            exact_match_result = compare_result["Sorted Result"].loc[0]
             unsorted_match_result = compare_result["Unsorted Result"].loc[0]
-            output_results(target_directory, test_name, content_type, content_a_id, content_b_id, content_test_element_id, extact_match_result, unsorted_match_result, error_test_skipped_merge_results,error_query_fails_to_run,error_investigate_output,error_merged_result, error_content_type)
+            output_results(target_directory, test_name, content_type, content_a_id, content_b_id, content_test_element_id, exact_match_result, unsorted_match_result, error_test_skipped_merge_results,error_query_fails_to_run,error_investigate_output,error_merged_result, error_content_type)
 
           else:
             print("Unable to Test Element - Merged Results Not Supported")
@@ -467,13 +503,19 @@ def main():
             my_writer = csv.writer(csvfile, delimiter = ' ')
             my_writer.writerow(results_b)
         
-        extact_match_result = compare_result["Sorted Result"].loc[0]
+        exact_match_result = compare_result["Sorted Result"].loc[0]
         unsorted_match_result = compare_result["Unsorted Result"].loc[0]
-        output_results(target_directory, test_name, content_type, content_a_id, content_b_id, "NA", extact_match_result, unsorted_match_result, error_test_skipped_merge_results,error_query_fails_to_run,error_investigate_output,error_merged_result, error_content_type)
+        output_results(target_directory, test_name, content_type, content_a_id, content_b_id, "NA", exact_match_result, unsorted_match_result, error_test_skipped_merge_results,error_query_fails_to_run,error_investigate_output,error_merged_result, error_content_type)
 
       else:
         error_content_type = True
         output_results(target_directory, test_name, content_type, content_a_id, content_b_id, "NA", "NA", "NA", error_test_skipped_merge_results,error_query_fails_to_run,error_investigate_output,error_merged_result, error_content_type)
+
+  dict_from_csv = csv.DictReader(open(target_directory + '/' + test_summary_file))
+
+  dict_from_csv, summary = add_level(dict_from_csv)
+
+  markdown = output_markdown(target_directory,dict_from_csv, summary)
 
 if __name__ == "__main__":
     main()
