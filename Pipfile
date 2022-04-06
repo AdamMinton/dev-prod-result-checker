@@ -8,6 +8,9 @@ looker-sdk = "*"
 pandas = "*"
 pyparsing = "*"
 prettyprinter = "*"
+pathlib = "*"
+datetime = "*"
+mdutils = "*"
 
 [dev-packages]
 
