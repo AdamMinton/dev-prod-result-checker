@@ -17,6 +17,9 @@ prettyprinter.install_extras(include=['attrs'])
 test_summary_file = "00_test_summary.csv"
 config_file = "content_tests_config.csv"
 
+#Project Specific Execution
+project_name = 'adam_minton_case_study'
+
 # Set up logger
 logging.getLogger().setLevel(logging.DEBUG)
 dash_logs = logging.getLogger('content_tests:')
@@ -331,9 +334,19 @@ def output_markdown(target_directory,results,summary):
   mdFile.new_table(columns=number_of_columns, rows=number_of_rows+1, text=column_headers)
   mdFile.create_md_file()
 
+def get_models_information(project_name):
+  models = sdk.all_lookml_models(fields="project_name,name")
+  for model in models:
+    if model.project_name == project_name:
+      model.active_project = True
+    else:
+      model.active_project = False
+  return models
+
 def main():
 
   projects = get_projects_information()
+  models = get_models_information(project_name)
 
   # Load test config file
   with open(config_file,'r', newline='') as csvfile:
