@@ -9,8 +9,6 @@ import prettyprinter
 from datetime import datetime
 from looker_sdk import models
 from mdutils.mdutils import MdUtils
-
-
 prettyprinter.install_extras(include=['attrs'])
 
 #File Names
@@ -19,16 +17,6 @@ config_file = "content_tests_config.csv"
 
 #Project Specific Execution
 project_name = 'adam_minton_case_study'
-
-# Set up logger
-logging.getLogger().setLevel(logging.DEBUG)
-dash_logs = logging.getLogger('content_tests:')
-dash_log_handler = logging.StreamHandler()
-dash_log_handler.setLevel(logging.INFO)
-formatter = logging.Formatter(
-        fmt='%(asctime)s.%(msecs)03d %(name)-12s %(levelname)-8s %(message)s',datefmt='%Y-%m-%d,%H:%M:%S')
-dash_log_handler.setFormatter(formatter)        
-dash_logs.addHandler(dash_log_handler)
 
 # Define variables for use in functions
 environments = ['dev','production']
@@ -76,8 +64,8 @@ def get_projects_information():
 
 # Function to switch branches
 def switch_session(dev_or_production):
-        sdk.session()
-        sdk.update_session(body = models.WriteApiSession(workspace_id = dev_or_production))
+  sdk.session()
+  sdk.update_session(body = models.WriteApiSession(workspace_id = dev_or_production))
 
 # Function to checkout git branches in Looker
 def checkout_dev_branch(branch_name,lookml_project):
@@ -188,8 +176,8 @@ def create_query_request(query):
     )
 
 def Merge(dict1, dict2):
-    res = {**dict1, **dict2}
-    return res
+  res = {**dict1, **dict2}
+  return res
 
 def get_default_look_filter_values(look_id):
   elements = sdk.look(look_id)
@@ -199,10 +187,9 @@ def get_default_look_filter_values(look_id):
     look_filter_details = {}
   return(look_filter_details)
 
-def get_default_dashboard_filter_values(dashboard_id):
-  dashboard_filter_details = sdk.dashboard_dashboard_filters(dashboard_id)
+def get_default_dashboard_filter_values(dashboard_filters):
   dashboard_filter_defaults = [] # type: list
-  for filter in dashboard_filter_details:
+  for filter in dashboard_filters:
     dashboard_filter_defaults.append(
     {
       "dashboard_filter_name":filter.name,
@@ -222,16 +209,10 @@ def get_dashboard_element_query(dashboard_element):
       query = dashboard_element.query
   return(query)
 
-def get_default_dashboard_element_filter_values(dashboard_element_id):
-  dashboard_element = sdk.dashboard_element(dashboard_element_id)
-  query = get_dashboard_element_query(dashboard_element)
-  dashboard_element_filter_details = query.filters
-  return(dashboard_element_filter_details)
-
-def get_default_dashboard_tile_filter_values(dashboard_id, dashboard_element_id,dashboard_filters_config):
-  dashboard_filters = get_default_dashboard_filter_values(dashboard_id)
-  dashboard_element_filters = get_default_dashboard_element_filter_values(dashboard_element_id)
-  result_maker = sdk.dashboard_element(dashboard_element_id).result_maker.filterables[0].listen
+def get_default_dashboard_tile_filter_values(dashboard_filters, dashboard_element,dashboard_filters_config):
+  dashboard_filters = get_default_dashboard_filter_values(dashboard_filters)
+  dashboard_element_filters = dashboard_element.result_maker.query.filters or {}
+  result_maker = dashboard_element.result_maker.filterables[0].listen
 
   #Loop Through Dashboard Filter Config to Update Dashboard Filters
   for dashboard_filter_config in dashboard_filters_config:
@@ -244,19 +225,20 @@ def get_default_dashboard_tile_filter_values(dashboard_id, dashboard_element_id,
     #Determine if tile listens to dashboard filter
     for listen_filter in result_maker:
       if dashboard_filter['dashboard_filter_name'] == listen_filter.dashboard_filter_name:
+        dashboard_element_filters[listen_filter.field] = dashboard_filter['filter_default_value']
         #Determine if overwriting tile filter or additional filter 
-        if dashboard_element_filters:
-          if listen_filter.field in dashboard_element_filters:
-            dashboard_element_filters[listen_filter.field] = dashboard_filter['filter_default_value']
-          else:
-            dashboard_element_filters[listen_filter.field] = dashboard_filter['filter_default_value']
+        ##BUG: Unsure what this was doing before
+        # if dashboard_element_filters:
+        #   if listen_filter.field in dashboard_element_filters:
+        #     dashboard_element_filters[listen_filter.field] = dashboard_filter['filter_default_value']
+        #   else:
+        #     dashboard_element_filters[listen_filter.field] = dashboard_filter['filter_default_value']
   return(dashboard_element_filters)
 
-def generate_tile_results(dashboard_id, dashboard_element_id, dashboard_filters_config):
+def generate_tile_results(dashboard_filters, dashboard_element, dashboard_filters_config):
   #Determine Tile Filters
-  dashboard_tile_filters = get_default_dashboard_tile_filter_values(dashboard_id,dashboard_element_id,dashboard_filters_config)
+  dashboard_tile_filters = get_default_dashboard_tile_filter_values(dashboard_filters,dashboard_element,dashboard_filters_config)
   #Obtain Query
-  dashboard_element = sdk.dashboard_element(dashboard_element_id)
   query = get_dashboard_element_query(dashboard_element)
   query.filters = dashboard_tile_filters
   query.client_id = None  #Need to remove for WriteQuery/RunInlineQuery
@@ -336,17 +318,19 @@ def output_markdown(target_directory,results,summary):
 
 def get_models_information(project_name):
   models = sdk.all_lookml_models(fields="project_name,name")
+  project_models = []
   for model in models:
     if model.project_name == project_name:
       model.active_project = True
+      project_models.append(model.name)
     else:
       model.active_project = False
-  return models
+  return (models,project_models)
 
 def main():
 
   projects = get_projects_information()
-  models = get_models_information(project_name)
+  (models,project_models) = get_models_information(project_name)
 
   # Load test config file
   with open(config_file,'r', newline='') as csvfile:
@@ -378,6 +362,16 @@ def main():
         #Dashboards can only be compared on the same object, only content_a_id is considered
         content_test_id = content_a_id
         dashboard = sdk.dashboard(content_test_id)
+
+        #Determine if LookML or UDD Dashboard
+        if '::' in dashboard.id:
+          dashboard_type = 'lookml'
+        else:
+          dashboard_type = 'udd'
+        
+        #Remove from dashboard elements any non-viz (i.e. non-query) tiles
+        dashboard.dashboard_elements = [x for x in dashboard.dashboard_elements if x.type == 'vis']
+
         #Comparisons will run on a tile by tile basis
         for dashboard_element in dashboard.dashboard_elements:
           #Reset test
@@ -389,7 +383,7 @@ def main():
           error_merged_result = False
           error_content_type = False
           #Only tests are being run on regular vis tiles, merge results are excluded
-          if dashboard_element.type == 'vis' and dashboard_element.merge_result_id == None:
+          if dashboard_element.result_maker.merge_result_id == None and dashboard_element.result_maker.query.model in project_models:
             content_test_element_id = dashboard_element.id
             for test_component in test_components:
               query = get_dashboard_element_query(dashboard_element)
@@ -410,7 +404,7 @@ def main():
                 if content_test_environment == 'dev' and content_test_branch:
                   checkout_dev_branch(content_test_branch, tile_project)
                   sync_dev_branch_to_remote(tile_project)
-                results = generate_tile_results(content_test_id,content_test_element_id,content_test_filter_config)
+                results = generate_tile_results(dashboard.dashboard_filters,dashboard_element,content_test_filter_config)
               except:
                 results = pd.DataFrame(['Unable to obtain query results'],columns=["Error Message"])
               #Run Query
@@ -445,11 +439,14 @@ def main():
             exact_match_result = compare_result["Sorted Result"].loc[0]
             unsorted_match_result = compare_result["Unsorted Result"].loc[0]
             output_results(target_directory, test_name, content_type, content_a_id, content_b_id, content_test_element_id, exact_match_result, unsorted_match_result, error_test_skipped_merge_results,error_query_fails_to_run,error_investigate_output,error_merged_result, error_content_type)
-
-          else:
+          elif dashboard_element.result_marker.query.model not in project_models:
+            print("Unable to Test Element - Query defined outside of current project")
+          elif dashboard_element.result_marker.merge_result_id is not None:
             print("Unable to Test Element - Merged Results Not Supported")
             error_merged_result = True
             output_results(target_directory, test_name, content_type, content_a_id, content_b_id, dashboard_element.id, "NA", "NA", error_test_skipped_merge_results,error_query_fails_to_run,error_investigate_output,error_merged_result, error_content_type)
+          else:
+            print("Unable to Test Element")    
           
       elif content_type == 'looks':
         #For A and B
