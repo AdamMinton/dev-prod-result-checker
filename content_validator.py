@@ -170,10 +170,6 @@ def create_query_request(query):
         vis_config=q.vis_config
     )
 
-def Merge(dict1, dict2):
-  res = {**dict1, **dict2}
-  return res
-
 def get_default_look_filter_values(look_id):
   elements = sdk.look(look_id)
   element_query = elements.query
@@ -479,7 +475,7 @@ def main():
             # Get default filter values
             default_look_filter_values = get_default_look_filter_values(content_a_id)
             # Filter values for input the same way, merge will overwrite defaults from the csv
-            default_look_filter_values = Merge(default_look_filter_values, content_test_filter_config)
+            default_look_filter_values = {**default_look_filter_values, **content_test_filter_config}
             look.query.filters = default_look_filter_values
             #Obtain a new query definition
             look_query = create_query_request(look.query)
