@@ -4,3 +4,5 @@
 .vscode
 .python-version
 looker.ini
+00_test_summary.csv
+Content_Test_results.md

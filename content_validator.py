@@ -38,16 +38,22 @@ exact_match_result = None
 unsorted_match_result = None
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--file", default="00_test_summary.csv", help="name of summary file")
+parser.add_argument("--file", default="00_test_summary", help="name of summary file")
 parser.add_argument("--config", default="content_tests_config.csv", help="csv containing tests to run")
 parser.add_argument("--project", help="LookML Project")
 parser.add_argument("--ini", default="looker.ini", help="ini file to parse for credentials")
 parser.add_argument("--section", default="looker", help="section for credentials")
-parser.add_argument("--current_project", action="store_true", help="set logger to debug for more verbosity")
+parser.add_argument("--export_csv", action="store_true", help="specifies whether to export csv results")
+parser.add_argument("--export_summary_csv", action="store_true", help="specifies whether to export csv summary")
+parser.add_argument("--export_summary_md", action="store_true", help="specifies whether to export markdown summary")
 args = parser.parse_args()
 sdk = looker_sdk.init31(config_file=args.ini, section=args.section)
-test_summary_file = args.file
+project_name = args.project
+test_summary_file = args.file + '.csv'
 config_file = args.config
+export_csv = args.export_csv
+export_summary_csv = args.export_summary_csv
+export_summary_md = args.export_summary_md
 
 
 def get_projects_information():
@@ -341,15 +347,18 @@ def get_models_information(project_name):
 
 
 def main():
-    project_name = args.project
 
     # Create directory for storing testing results
-    target_directory = str(pathlib.Path().absolute()) + "/comparing_content_" + str(datetime.today().strftime('%Y-%m-%d-%H_%M'))
-    os.mkdir(target_directory)
+    if export_csv:
+        target_directory = str(pathlib.Path().absolute()) + "/comparing_content_" + str(datetime.today().strftime('%Y-%m-%d-%H_%M'))
+        os.mkdir(target_directory)
+    else:
+        target_directory = str(pathlib.Path().absolute())
 
     # Make summary file
     csv_header_line = "test_name" + "," + "content_type" + "," + "content_a_id" + "," + "content_b_id" + "," + "content_element_id" + "," + "exact_match_result" + "," + "unsorted_match_result" + "," + "test_error_message"
-    with open(target_directory + '/' + test_summary_file, 'a') as file:
+
+    with open(target_directory + '/' + test_summary_file, 'w+') as file:
         file.write(csv_header_line)
         file.write('\n')
 
@@ -439,7 +448,8 @@ def main():
                         result_b_file = target_directory + "/" + test_name + "_" + content_test_element_id + "_result_b.csv"
                         try:
                             results_a = pd.read_json(results_a)
-                            results_a.to_csv(result_a_file, index=False)
+                            if export_csv:
+                                results_a.to_csv(result_a_file, index=False)
                         except: # NOQA
                             error_investigate_output = True
                             with open(result_a_file, 'w', newline='') as csvfile:
@@ -447,7 +457,8 @@ def main():
                                 my_writer.writerow(results_a)
                         try:
                             results_b = pd.read_json(results_b)
-                            results_b.to_csv(result_b_file, index=False)
+                            if export_csv:
+                                results_b.to_csv(result_b_file, index=False)
                         except: # NOQA
                             error_investigate_output = True
                             with open(result_b_file, 'w', newline='') as csvfile:
@@ -537,11 +548,13 @@ def main():
                 error_content_type = True
                 output_results(target_directory, test_name, content_type, content_a_id, content_b_id, "NA", "NA", "NA", error_test_skipped_merge_results, error_query_fails_to_run, error_investigate_output, error_merged_result, error_content_type)
 
-    dict_from_csv = csv.DictReader(open(target_directory + '/' + test_summary_file))
+    if export_summary_md:
+        dict_from_csv = csv.DictReader(open(target_directory + '/' + test_summary_file))
+        dict_from_csv, summary = add_level(dict_from_csv)
+        output_markdown(target_directory, dict_from_csv, summary)
 
-    dict_from_csv, summary = add_level(dict_from_csv)
-
-    output_markdown(target_directory, dict_from_csv, summary)
+    if not export_summary_csv:
+        os.remove(target_directory + '/' + test_summary_file)
 
 
 main()
