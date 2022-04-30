@@ -1,10 +1,6 @@
-looker.ini
 /comparing_content*
-.DS_STORE
-*.txt
-dashboard_tile.py
+/sample_json
+/other
+.vscode
 .python-version
-testing.py
-IMPROVEMENTS.MD
-small_config.csv
-etsy_config.csv
+looker.ini

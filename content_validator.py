@@ -1,24 +1,19 @@
 import csv
 import json
-import logging
 import looker_sdk
 import os
 import pandas as pd
 import pathlib
 import prettyprinter
+import argparse
 from datetime import datetime
 from looker_sdk import models
 from mdutils.mdutils import MdUtils
 prettyprinter.install_extras(include=['attrs'])
 
-#File Names
-test_summary_file = "00_test_summary.csv"
-config_file = "content_tests_config.csv"
-
-#Project Specific Execution
-project_name = 'adam_minton_case_study'
-
 # Define variables for use in functions
+sdk = None
+test_summary_file = None
 environments = ['dev','production']
 test_components = ['a','b']
 compare_result = pd.DataFrame(columns=["Test Name","Sorted Result","Unsorted Result"])
@@ -44,18 +39,20 @@ test_error_message = None
 exact_match_result = None
 unsorted_match_result = None
 
-#Create directory for storing testing results
-target_directory = str(pathlib.Path().absolute()) + "/comparing_content_" + str(datetime.today().strftime('%Y-%m-%d-%H_%M'))
-os.mkdir(target_directory)
-
-#Make summary file
-csv_header_line = "test_name" + "," + "content_type" + "," + "content_a_id" + "," + "content_b_id" + "," + "content_element_id" + "," + "exact_match_result" + "," + "unsorted_match_result" + "," + "test_error_message"
-with open(target_directory +'/'+test_summary_file,'a') as file:
-  file.write(csv_header_line)
-  file.write('\n')
+parser = argparse.ArgumentParser()
+parser.add_argument("--file", default="00_test_summary.csv", help="name of summary file")
+parser.add_argument("--config", default="content_tests_config.csv", help="csv containing tests to run")
+parser.add_argument("--project", help="LookML Project")
+parser.add_argument("--ini", default="looker.ini", help="ini file to parse for credentials")
+parser.add_argument("--section", default="looker", help="section for credentials")
+parser.add_argument("--current_project", action="store_true", help="set logger to debug for more verbosity")
+args = parser.parse_args()
 
 #Initialize Looker SDK
-sdk = looker_sdk.init31(section="Looker")  # or init40() for v4.0 API
+sdk = looker_sdk.init31(config_file=args.ini,section=args.section)
+#File Names
+test_summary_file = args.file
+config_file = args.config
 
 # Determine projects and production branches
 def get_projects_information():
@@ -329,6 +326,19 @@ def get_models_information(project_name):
 
 def main():
 
+  #Project Specific Execution
+  project_name = args.project
+  
+  #Create directory for storing testing results
+  target_directory = str(pathlib.Path().absolute()) + "/comparing_content_" + str(datetime.today().strftime('%Y-%m-%d-%H_%M'))
+  os.mkdir(target_directory)
+
+  #Make summary file
+  csv_header_line = "test_name" + "," + "content_type" + "," + "content_a_id" + "," + "content_b_id" + "," + "content_element_id" + "," + "exact_match_result" + "," + "unsorted_match_result" + "," + "test_error_message"
+  with open(target_directory +'/'+test_summary_file,'a') as file:
+    file.write(csv_header_line)
+    file.write('\n')
+
   projects = get_projects_information()
   (models,project_models) = get_models_information(project_name)
 
@@ -362,12 +372,6 @@ def main():
         #Dashboards can only be compared on the same object, only content_a_id is considered
         content_test_id = content_a_id
         dashboard = sdk.dashboard(content_test_id)
-
-        #Determine if LookML or UDD Dashboard
-        if '::' in dashboard.id:
-          dashboard_type = 'lookml'
-        else:
-          dashboard_type = 'udd'
         
         #Remove from dashboard elements any non-viz (i.e. non-query) tiles
         dashboard.dashboard_elements = [x for x in dashboard.dashboard_elements if x.type == 'vis']
@@ -383,7 +387,7 @@ def main():
           error_merged_result = False
           error_content_type = False
           #Only tests are being run on regular vis tiles, merge results are excluded
-          if dashboard_element.result_maker.merge_result_id == None and dashboard_element.result_maker.query.model in project_models:
+          if dashboard_element.result_maker.merge_result_id == None and (dashboard_element.result_maker.query.model in project_models if project_name else True):
             content_test_element_id = dashboard_element.id
             for test_component in test_components:
               query = get_dashboard_element_query(dashboard_element)
@@ -439,9 +443,9 @@ def main():
             exact_match_result = compare_result["Sorted Result"].loc[0]
             unsorted_match_result = compare_result["Unsorted Result"].loc[0]
             output_results(target_directory, test_name, content_type, content_a_id, content_b_id, content_test_element_id, exact_match_result, unsorted_match_result, error_test_skipped_merge_results,error_query_fails_to_run,error_investigate_output,error_merged_result, error_content_type)
-          elif dashboard_element.result_marker.query.model not in project_models:
+          elif project_name and dashboard_element.result_maker.query.model not in project_models:
             print("Unable to Test Element - Query defined outside of current project")
-          elif dashboard_element.result_marker.merge_result_id is not None:
+          elif dashboard_element.result_maker.merge_result_id is not None:
             print("Unable to Test Element - Merged Results Not Supported")
             error_merged_result = True
             output_results(target_directory, test_name, content_type, content_a_id, content_b_id, dashboard_element.id, "NA", "NA", error_test_skipped_merge_results,error_query_fails_to_run,error_investigate_output,error_merged_result, error_content_type)
@@ -525,5 +529,4 @@ def main():
 
   markdown = output_markdown(target_directory,dict_from_csv, summary)
 
-if __name__ == "__main__":
-    main()
+main()

@@ -1,2 +1,5 @@
-Test Name,Content Type,Component A Content ID, Component A Filter Config, Component A Branch, Component B Content ID, Component B Filter Config, Component B Branch
+Test Name,Content Type,Component A Content ID," Component A Filter Config"," Component A Branch"," Component B Content ID"," Component B Filter Config"," Component B Branch"
+Redshift,dashboards,block_redshift_admin::redshift_performance,{},master,block_redshift_admin::redshift_performance,{},test_aragonite
+LookML Fashionly,dashboards,adam_minton_case_study::fashion_ly_health_dashboard,{},master,adam_minton_case_study::fashion_ly_health_dashboard,{},test_aragonite
 AG Grid Demo,dashboards,957,{},master,957,{},test_aragonite
+Fashionly,dashboards,248,{},master,248,{},test_aragonite
