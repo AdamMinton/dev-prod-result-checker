@@ -4,12 +4,10 @@ import looker_sdk
 import os
 import pandas as pd
 import pathlib
-import prettyprinter
 import argparse
 from datetime import datetime
 from looker_sdk import models
 from mdutils.mdutils import MdUtils
-prettyprinter.install_extras(include=['attrs'])
 
 # Define variables for use in functions
 sdk = None

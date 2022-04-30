@@ -7,10 +7,10 @@ name = "pypi"
 looker-sdk = "*"
 pandas = "*"
 pyparsing = "*"
-prettyprinter = "*"
 pathlib = "*"
 datetime = "*"
 mdutils = "*"
+argparse = "*"
 
 [dev-packages]
 
