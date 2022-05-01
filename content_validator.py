@@ -46,6 +46,7 @@ parser.add_argument("--export_csv", action="store_true", help="specifies whether
 parser.add_argument("--export_summary_csv", action="store_true", help="specifies whether to export csv summary")
 parser.add_argument("--export_summary_md", action="store_true", help="specifies whether to export markdown summary")
 parser.add_argument("--folder", default="./Content_Tests", help="name of folder location, will replace contents")
+parser.add_argument("--content_b_branch_override", help="Override content B branch for all tests")
 args = parser.parse_args()
 sdk = looker_sdk.init31(config_file=args.ini, section=args.section)
 project_name = args.project
@@ -55,6 +56,7 @@ export_csv = args.export_csv
 export_summary_csv = args.export_summary_csv
 export_summary_md = args.export_summary_md
 folder_location = args.folder
+content_b_branch_override = args.content_b_branch_override
 
 
 def get_projects_information():
@@ -381,7 +383,10 @@ def main():
             content_a_branch = row[4]
             content_b_id = row[5]
             content_b_filter_config = json.loads(row[6])
-            content_b_branch = row[7]
+            if content_b_branch_override:
+                content_b_branch = content_b_branch_override
+            else:
+                content_b_branch = row[7]
             # Reset test
             results_a = pd.DataFrame()
             results_b = pd.DataFrame()
