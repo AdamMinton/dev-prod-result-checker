@@ -1,11 +1,10 @@
 import csv
 import json
 import looker_sdk
-import os
 import pandas as pd
-import pathlib
 import argparse
-from datetime import datetime
+import shutil
+from pathlib import Path
 from looker_sdk import models
 from mdutils.mdutils import MdUtils
 
@@ -46,6 +45,7 @@ parser.add_argument("--section", default="looker", help="section for credentials
 parser.add_argument("--export_csv", action="store_true", help="specifies whether to export csv results")
 parser.add_argument("--export_summary_csv", action="store_true", help="specifies whether to export csv summary")
 parser.add_argument("--export_summary_md", action="store_true", help="specifies whether to export markdown summary")
+parser.add_argument("--folder", default="./Content_Tests", help="name of folder location, will replace contents")
 args = parser.parse_args()
 sdk = looker_sdk.init31(config_file=args.ini, section=args.section)
 project_name = args.project
@@ -54,6 +54,7 @@ config_file = args.config
 export_csv = args.export_csv
 export_summary_csv = args.export_summary_csv
 export_summary_md = args.export_summary_md
+folder_location = args.folder
 
 
 def get_projects_information():
@@ -293,7 +294,7 @@ def output_results(target_directory, test_name, content_type, content_a_id, cont
 
     csv_line = test_name + "," + content_type + "," + str(content_a_id) + "," + str(content_b_id) + "," + content_test_element_id + "," + exact_match_result + "," + unsorted_match_result + "," + test_error_message
 
-    with open(target_directory + '/' + test_summary_file, 'a') as file:
+    with open(Path.joinpath(target_directory, test_summary_file), 'a') as file:
         file.write(csv_line)
         file.write('\n')
 
@@ -319,7 +320,7 @@ def add_level(results):
 
 
 def output_markdown(target_directory, results, summary):
-    mdFile = MdUtils(file_name=target_directory + '/' + 'Content_Test_results', title='Content Test ' + summary)
+    mdFile = MdUtils(file_name=str(target_directory) + '/' + 'Content_Test_results', title='Content Test ' + summary)
 
     column_headers = ["Test Name", "Content Type", "Content A ID", "Content B ID", "Content Element ID", "Exact Match", "Unsorted Match", "Test Error Message", "Level"]
 
@@ -349,16 +350,16 @@ def get_models_information(project_name):
 def main():
 
     # Create directory for storing testing results
-    if export_csv:
-        target_directory = str(pathlib.Path().absolute()) + "/comparing_content_" + str(datetime.today().strftime('%Y-%m-%d-%H_%M'))
-        os.mkdir(target_directory)
-    else:
-        target_directory = str(pathlib.Path().absolute())
+    target_directory = Path(folder_location)
+    if target_directory.exists() and target_directory.is_dir() and target_directory.absolute() != Path().absolute():
+        shutil.rmtree(target_directory)
+    if target_directory.absolute() != Path().absolute():
+        Path.mkdir(target_directory)
 
     # Make summary file
     csv_header_line = "test_name" + "," + "content_type" + "," + "content_a_id" + "," + "content_b_id" + "," + "content_element_id" + "," + "exact_match_result" + "," + "unsorted_match_result" + "," + "test_error_message"
 
-    with open(target_directory + '/' + test_summary_file, 'w+') as file:
+    with open(Path.joinpath(target_directory, test_summary_file), 'w+') as file:
         file.write(csv_header_line)
         file.write('\n')
 
@@ -444,8 +445,8 @@ def main():
                         compare_result = compare_json(test_name + "_" + content_test_element_id, results_a, results_b)
 
                         # Output Files
-                        result_a_file = target_directory + "/" + test_name + "_" + content_test_element_id + "_result_a.csv"
-                        result_b_file = target_directory + "/" + test_name + "_" + content_test_element_id + "_result_b.csv"
+                        result_a_file = Path.joinpath(target_directory, test_name + "_" + content_test_element_id + "_result_a.csv")
+                        result_b_file = Path.joinpath(target_directory, test_name + "_" + content_test_element_id + "_result_b.csv")
                         try:
                             results_a = pd.read_json(results_a)
                             if export_csv:
@@ -521,8 +522,8 @@ def main():
 
                 # Run the compare results function. Then clean up dictionaries used for comparisons
                 compare_result = compare_json(test_name, results_a, results_b)
-                result_a_file = target_directory + "/" + test_name + "_result_a.csv"
-                result_b_file = target_directory + "/" + test_name + "_result_b.csv"
+                result_a_file = Path.joinpath(target_directory, test_name + "_result_a.csv")
+                result_b_file = Path.joinpath(target_directory, test_name + "_result_b.csv")
                 try:
                     results_a = pd.read_json(results_a)
                     results_a.to_csv(result_a_file, index=False)
@@ -549,12 +550,12 @@ def main():
                 output_results(target_directory, test_name, content_type, content_a_id, content_b_id, "NA", "NA", "NA", error_test_skipped_merge_results, error_query_fails_to_run, error_investigate_output, error_merged_result, error_content_type)
 
     if export_summary_md:
-        dict_from_csv = csv.DictReader(open(target_directory + '/' + test_summary_file))
+        dict_from_csv = csv.DictReader(open(Path.joinpath(target_directory, test_summary_file)))
         dict_from_csv, summary = add_level(dict_from_csv)
         output_markdown(target_directory, dict_from_csv, summary)
 
     if not export_summary_csv:
-        os.remove(target_directory + '/' + test_summary_file)
+        Path.unlink(Path.joinpath(target_directory, test_summary_file))
 
 
 main()
