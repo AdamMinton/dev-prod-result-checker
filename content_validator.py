@@ -1,5 +1,6 @@
 import csv
 import json
+import re
 import looker_sdk
 import pandas as pd
 import argparse
@@ -118,8 +119,11 @@ def compare_json(test_name, json1, json2):
     except: # NOQA
         df_failed_to_load = True
 
-    if json1 == [] and json2 == []:
-        df_empty_result = True
+    try:
+        if json1 == [] and json2 == []:
+            df_empty_result = True
+    except: # NOQA
+        df_failed_to_load = True
 
     if not df_failed_to_load:
         # Order Matters
@@ -376,7 +380,8 @@ def main():
 
         # Pull test configurations into variables
         for row in content_test_config:
-            test_name = row[0]
+            # test_name = row[0]
+            test_name = re.sub(r'[^A-Za-z0-9 ]+', '', row[0])
             content_type = row[1]
             content_a_id = row[2]
             content_a_filter_config = json.loads(row[3])
@@ -416,7 +421,9 @@ def main():
                     error_merged_result = False
                     error_content_type = False
                     # Only tests are being run on regular vis tiles, merge results are excluded
-                    if dashboard_element.result_maker.merge_result_id is None and (dashboard_element.result_maker.query.model in project_models if project_name else True):
+                    if dashboard_element.result_maker is None:
+                        print("Unable to Test Element - Missing Query")
+                    elif dashboard_element.result_maker.merge_result_id is None and (dashboard_element.result_maker.query.model in project_models if project_name else True):
                         content_test_element_id = dashboard_element.id
                         for test_component in test_components:
                             query = get_dashboard_element_query(dashboard_element)
