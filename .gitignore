@@ -6,3 +6,4 @@
 looker.ini
 00_test_summary.csv
 Content_Test_results.md
+.ipynb_checkpoints/*
